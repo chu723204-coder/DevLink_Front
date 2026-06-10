@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevLink - 개발자 취준생 커뮤니티</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --indigo: #4338CA;
+      --indigo-light: #EEF2FF;
+      --indigo-hover: #3730A3;
+      --bg: #F3F4F6;
+      --card: #ffffff;
+      --border: rgba(0,0,0,0.08);
+      --border-strong: rgba(0,0,0,0.14);
+      --text-primary: #111827;
+      --text-secondary: #6B7280;
+      --text-muted: #9CA3AF;
+
+      --cat-free-bg: #EEF2FF; --cat-free-text: #4338CA;
+      --cat-interview-bg: #FDF2F8; --cat-interview-text: #9D174D;
+      --cat-tech-bg: #F0FDF4; --cat-tech-text: #166534;
+      --cat-job-bg: #FFFBEB; --cat-job-text: #92400E;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ── HEADER ── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--card);
+      border-bottom: 0.5px solid var(--border-strong);
+      height: 56px;
+      display: flex;
+      align-items: center;
+    }
+    .header-inner {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .logo {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--indigo);
+      letter-spacing: -0.4px;
+      flex-shrink: 0;
+    }
+    .logo span { color: var(--text-primary); }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+    }
+    .nav a {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav a:hover { background: var(--indigo-light); color: var(--indigo); }
+    .nav a.active { color: var(--indigo); background: var(--indigo-light); }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 0.5px solid var(--border-strong);
+    }
+    .btn-ghost:hover { background: var(--bg); color: var(--text-primary); }
+    .btn-primary {
+      background: var(--indigo);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--indigo-hover); }
+    .btn-icon {
+      width: 36px; height: 36px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      background: transparent;
+      border: 0.5px solid var(--border-strong);
+      cursor: pointer;
+      color: var(--text-secondary);
+      position: relative;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-icon:hover { background: var(--bg); color: var(--text-primary); }
+    .notif-dot {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 7px; height: 7px;
+      background: #EF4444;
+      border-radius: 50%;
+      border: 1.5px solid #fff;
+    }
+    .avatar-btn {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--indigo-light);
+      color: var(--indigo);
+      font-size: 12px;
+      font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      border: 1.5px solid var(--border-strong);
+      position: relative;
+    }
+
+    /* dropdown */
+    .dropdown-wrap { position: relative; }
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 200px;
+      background: var(--card);
+      border: 0.5px solid var(--border-strong);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      overflow: hidden;
+      z-index: 200;
+    }
+    .dropdown-wrap.open .dropdown { display: block; }
+    .dropdown-header {
+      padding: 14px 16px 10px;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .dropdown-header .name { font-weight: 600; font-size: 13px; }
+    .dropdown-header .email { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .dropdown-menu a {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: var(--text-primary);
+      transition: background 0.1s;
+    }
+    .dropdown-menu a:hover { background: var(--bg); }
+    .dropdown-menu a.logout { color: #EF4444; border-top: 0.5px solid var(--border); }
+    .dropdown-menu a svg { width: 15px; height: 15px; opacity: 0.5; }
+
+    /* ── 미리보기 토글바 ── */
+    .toggle-bar {
+      background: #1E1B4B;
+      text-align: center;
+      padding: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+    }
+    .toggle-bar button {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      font-size: 12px;
+      padding: 3px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 8px;
+      font-family: inherit;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--card);
+      border-bottom: 0.5px solid var(--border-strong);
+      padding: 48px 24px 40px;
+    }
+    .hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+    }
+    .hero-copy { max-width: 540px; }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--indigo);
+      background: var(--indigo-light);
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 16px;
+    }
+    .hero-eyebrow span { width: 6px; height: 6px; background: var(--indigo); border-radius: 50%; display: inline-block; }
+    .hero-title {
+      font-size: 32px;
+      font-weight: 600;
+      line-height: 1.3;
+      letter-spacing: -0.6px;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+    .hero-title em { color: var(--indigo); font-style: normal; }
+    .hero-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      flex-shrink: 0;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--indigo);
+      letter-spacing: -0.5px;
+      display: block;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .stat-divider {
+      width: 0.5px;
+      background: var(--border-strong);
+      align-self: stretch;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 200px 1fr 240px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ── SIDEBAR (LEFT) ── */
+    .sidebar { display: flex; flex-direction: column; gap: 12px; }
+    .sidebar-card {
+      background: var(--card);
+      border: 0.5px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .sidebar-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .sidebar-menu { display: flex; flex-direction: column; gap: 2px; }
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 7px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      transition: all 0.12s;
+    }
+    .sidebar-menu a:hover { background: var(--bg); color: var(--text-primary); }
+    .sidebar-menu a.active { background: var(--indigo-light); color: var(--indigo); font-weight: 500; }
+    .sidebar-count {
+      font-size: 11px;
+      background: var(--bg);
+      color: var(--text-muted);
+      padding: 1px 7px;
+      border-radius: 99px;
+    }
+    .sidebar-menu a.active .sidebar-count { background: var(--indigo); color: #fff; }
+    .sidebar-login-cta {
+      background: var(--indigo-light);
+      border: 0.5px solid rgba(67,56,202,0.2);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .sidebar-login-cta p { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5; }
+
+    /* ── FEED (CENTER) ── */
+    .feed { display: flex; flex-direction: column; gap: 10px; }
+    .feed-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .feed-title { font-size: 15px; font-weight: 600; }
+    .feed-filters { display: flex; gap: 4px; }
+    .filter-btn {
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 0.5px solid var(--border-strong);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.12s;
+    }
+    .filter-btn.active { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+    .filter-btn:hover:not(.active) { background: var(--card); color: var(--text-primary); }
+
+    .write-bar {
+      background: var(--card);
+      border: 0.5px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .write-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--indigo-light);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--indigo);
+    }
+    .write-input {
+      flex: 1;
+      height: 34px;
+      border: 0.5px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 0 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      background: var(--bg);
+      cursor: pointer;
+      display: flex; align-items: center;
+    }
+
+    .post-card {
+      background: var(--card);
+      border: 0.5px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .post-card:hover { border-color: rgba(67,56,202,0.35); }
+    .post-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .post-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .cat-badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .cat-free { background: var(--cat-free-bg); color: var(--cat-free-text); }
+    .cat-interview { background: var(--cat-interview-bg); color: var(--cat-interview-text); }
+    .cat-tech { background: var(--cat-tech-bg); color: var(--cat-tech-text); }
+    .cat-job { background: var(--cat-job-bg); color: var(--cat-job-text); }
+    .post-author { font-size: 12px; color: var(--text-muted); }
+    .post-time { font-size: 12px; color: var(--text-muted); }
+    .post-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.45;
+      margin-bottom: 6px;
+    }
+    .post-excerpt {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .post-footer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .post-tags { flex: 1; display: flex; gap: 5px; flex-wrap: wrap; }
+    .tag {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .post-stats { display: flex; align-items: center; gap: 12px; }
+    .post-stat {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--text-muted);
+    }
+    .post-stat svg { width: 13px; height: 13px; }
+
+    /* ── RIGHT SIDEBAR ── */
+    .right-sidebar { display: flex; flex-direction: column; gap: 14px; }
+    .right-card {
+      background: var(--card);
+      border: 0.5px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .right-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .right-card-title a { font-size: 11px; color: var(--indigo); font-weight: 400; }
+    .study-item {
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--border);
+      cursor: pointer;
+    }
+    .study-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .study-item-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 5px;
+      line-height: 1.4;
+    }
+    .study-item-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .study-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text-muted);
+    }
+    .study-badge.open { background: #ECFDF5; color: #059669; }
+    .notice-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 0.5px solid var(--border);
+      cursor: pointer;
+    }
+    .notice-item:last-child { border-bottom: none; }
+    .notice-num {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--indigo);
+      background: var(--indigo-light);
+      width: 20px; height: 20px;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .notice-text { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+    .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag-pill {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: var(--bg);
+      color: var(--text-secondary);
+      border: 0.5px solid var(--border-strong);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .tag-pill:hover { background: var(--indigo-light); color: var(--indigo); border-color: rgba(67,56,202,0.3); }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--card);
+      border-top: 0.5px solid var(--border-strong);
+      margin-top: 48px;
+      padding: 32px 24px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 32px;
+    }
+    .footer-brand .logo { font-size: 16px; }
+    .footer-brand p { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.6; }
+    .footer-links { display: flex; gap: 40px; }
+    .footer-col-title { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+    .footer-col a { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 7px; transition: color 0.12s; }
+    .footer-col a:hover { color: var(--indigo); }
+    .footer-copy {
+      max-width: 1200px;
+      margin: 20px auto 0;
+      padding-top: 16px;
+      border-top: 0.5px solid var(--border);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body id="root">
+
+  <!-- 미리보기 토글 (배포 시 제거) -->
+  <div class="toggle-bar">
+    <span>👁 퍼블리싱 미리보기</span>
+    <button id="toggleBtn" onclick="toggleLogin()">로그인 상태로 전환</button>
+  </div>
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="#">Dev<span>Link</span></a>
+      <nav class="nav">
+        <a href="#" class="active">게시판</a>
+        <a href="#">스터디</a>
+        <a href="#">채팅</a>
+      </nav>
+      <!-- 로그인 전 -->
+      <div class="header-actions" id="headerLoggedOut">
+        <button class="btn btn-ghost">로그인</button>
+        <button class="btn btn-primary">회원가입</button>
+      </div>
+      <!-- 로그인 후 -->
+      <div class="header-actions" id="headerLoggedIn" style="display:none;">
+        <button class="btn-icon" title="알림">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="notif-dot"></span>
+        </button>
+        <div class="dropdown-wrap" id="dropdownWrap">
+          <div class="avatar-btn" onclick="toggleDropdown()">김</div>
+          <div class="dropdown">
+            <div class="dropdown-header">
+              <div class="name">김개발</div>
+              <div class="email">devkim@example.com</div>
+            </div>
+            <nav class="dropdown-menu">
+              <a href="#">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                내 프로필
+              </a>
+              <a href="#">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                내 게시글
+              </a>
+              <a href="#">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+                내 스터디
+              </a>
+              <a href="#" class="logout" onclick="toggleLogin()">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+                로그아웃
+              </a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="hero-eyebrow">
+          <span></span>
+          개발자 취준생 커뮤니티
+        </div>
+        <h1 class="hero-title">
+          취업 준비, 혼자 하지 않아도 돼요.<br/>
+          <em>DevLink</em>에서 함께 해요.
+        </h1>
+        <p class="hero-desc">면접 후기를 공유하고, 스터디를 만들고, 같은 목표를 가진 개발자들과 연결하세요. 취준의 모든 순간을 함께합니다.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" style="padding: 9px 20px; font-size: 14px;">시작하기</button>
+          <button class="btn btn-ghost" style="padding: 9px 20px; font-size: 14px;">게시판 둘러보기</button>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item"><span class="stat-num">12,400+</span><div class="stat-label">가입 회원</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat-item"><span class="stat-num">38,200+</span><div class="stat-label">누적 게시글</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat-item"><span class="stat-num">1,540+</span><div class="stat-label">진행 중 스터디</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MAIN LAYOUT ── -->
+  <div class="layout">
+
+    <!-- 왼쪽 사이드바 -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-section-title">게시판</div>
+        <nav class="sidebar-menu">
+          <a href="#" class="active">전체 <span class="sidebar-count">전체</span></a>
+          <a href="#">자유 <span class="sidebar-count">1.2k</span></a>
+          <a href="#">면접 후기 <span class="sidebar-count">834</span></a>
+          <a href="#">기술 질문 <span class="sidebar-count">620</span></a>
+          <a href="#">취업 정보 <span class="sidebar-count">411</span></a>
+        </nav>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-section-title">스터디</div>
+        <nav class="sidebar-menu">
+          <a href="#">모집 중 <span class="sidebar-count">218</span></a>
+          <a href="#" id="myStudyLink" style="display:none;">내 스터디</a>
+        </nav>
+      </div>
+
+      <!-- 로그인 전 CTA -->
+      <div class="sidebar-card" id="loginCta">
+        <div class="sidebar-login-cta">
+          <p>로그인하고 스터디에 참여하거나 게시글을 작성해보세요.</p>
+          <button class="btn btn-primary" style="width:100%; justify-content:center; font-size:13px;">로그인하기</button>
+        </div>
+      </div>
+
+      <!-- 로그인 후: 내 활동 -->
+      <div class="sidebar-card" id="myActivity" style="display:none;">
+        <div class="sidebar-section-title">내 활동</div>
+        <nav class="sidebar-menu">
+          <a href="#">마이페이지</a>
+          <a href="#">알림 <span class="sidebar-count" style="background:var(--indigo);color:#fff;">3</span></a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- 피드 (가운데) -->
+    <main class="feed">
+      <div class="feed-header">
+        <span class="feed-title">최신 게시글</span>
+        <div class="feed-filters">
+          <button class="filter-btn active">최신순</button>
+          <button class="filter-btn">인기순</button>
+          <button class="filter-btn">댓글순</button>
+        </div>
+      </div>
+
+      <div class="write-bar" id="writeBar" style="opacity:0.5; pointer-events:none;">
+        <div class="write-avatar">김개</div>
+        <div class="write-input">무슨 생각을 하고 있나요?</div>
+        <button class="btn btn-primary" style="font-size:13px; padding: 6px 14px;">글쓰기</button>
+      </div>
+
+      <article class="post-card">
+        <div class="post-card-top">
+          <div>
+            <div class="post-meta" style="margin-bottom:8px;">
+              <span class="cat-badge cat-interview">면접 후기</span>
+              <span class="post-author">박민준</span>
+              <span class="post-time">· 23분 전</span>
+            </div>
+            <div class="post-title">카카오 신입 공채 최종 합격 후기 공유합니다 (코딩테스트 → 1차 → 2차 면접)</div>
+            <p class="post-excerpt">결과적으로 합격했지만 정말 쉽지 않은 여정이었습니다. 특히 2차 면접에서 시스템 설계 관련 질문이 생각보다 깊게 들어왔어요. 구체적으로 어떻게 준비했는지 단계별로 적어볼게요.</p>
+          </div>
+        </div>
+        <div class="post-footer">
+          <div class="post-tags"><span class="tag">#카카오</span><span class="tag">#신입</span><span class="tag">#코딩테스트</span></div>
+          <div class="post-stats">
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>48</span>
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z"/></svg>212</span>
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>1,840</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="post-card">
+        <div class="post-card-top">
+          <div>
+            <div class="post-meta" style="margin-bottom:8px;">
+              <span class="cat-badge cat-tech">기술 질문</span>
+              <span class="post-author">이수연</span>
+              <span class="post-time">· 1시간 전</span>
+            </div>
+            <div class="post-title">React Query와 Zustand 같이 쓰는 게 맞는 구조인가요?</div>
+            <p class="post-excerpt">서버 상태는 React Query로 관리하고 있는데, UI 상태도 Zustand로 같이 쓰는 게 이상한 건 아닌지 궁금합니다. 특히 인증 토큰 같은 건 어디서 관리하는 게 일반적인지 여쭤보고 싶어요.</p>
+          </div>
+        </div>
+        <div class="post-footer">
+          <div class="post-tags"><span class="tag">#React</span><span class="tag">#Zustand</span><span class="tag">#ReactQuery</span></div>
+          <div class="post-stats">
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>27</span>
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z"/></svg>89</span>
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>542</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="post-card">
+        <div class="post-card-top">
+          <div>
+            <div class="post-meta" style="margin-bottom:8px;">
+              <span class="cat-badge cat-job">취업 정보</span>
+              <span class="post-author">최준혁</span>
+              <span class="post-time">· 3시간 전</span>
+            </div>
+            <div class="post-title">2026 상반기 대기업 IT 채용 일정 총정리 (삼성, LG, SK, 현대)</div>
+            <p class="post-excerpt">각 회사 채용 공고 오픈 예정 시기와 전형 일정을 한눈에 정리해봤습니다. 지원 전에 꼭 공식 사이트 재확인 부탁드립니다.</p>
+          </div>
+        </div>
+        <div class="post-footer">
+          <div class="post-tags"><span class="tag">#채용일정</span><span class="tag">#대기업</span><span class="tag">#2026상반기</span></div>
+          <div class="post-stats">
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>61</span>
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z"/></svg>155</span>
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>3,210</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="post-card">
+        <div class="post-card-top">
+          <div>
+            <div class="post-meta" style="margin-bottom:8px;">
+              <span class="cat-badge cat-free">자유</span>
+              <span class="post-author">정하영</span>
+              <span class="post-time">· 5시간 전</span>
+            </div>
+            <div class="post-title">드디어 첫 번째 사이드 프로젝트 배포했어요 🎉</div>
+            <p class="post-excerpt">3달 동안 퇴근하고 짬짬이 만들었는데 드디어 완성했습니다. 취준 기간 동안 포트폴리오용으로 만든 토이 프로젝트인데 피드백 주시면 감사할 것 같아요.</p>
+          </div>
+        </div>
+        <div class="post-footer">
+          <div class="post-tags"><span class="tag">#사이드프로젝트</span><span class="tag">#포트폴리오</span></div>
+          <div class="post-stats">
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>33</span>
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z"/></svg>71</span>
+            <span class="post-stat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>407</span>
+          </div>
+        </div>
+      </article>
+
+      <button class="btn btn-ghost" style="width:100%; justify-content:center; padding: 12px; font-size:13px; border-radius:10px;">게시글 더 보기</button>
+    </main>
+
+    <!-- 오른쪽 사이드바 -->
+    <aside class="right-sidebar">
+      <div class="right-card">
+        <div class="right-card-title">모집 중인 스터디 <a href="#">전체보기 →</a></div>
+        <div class="study-item"><div class="study-item-title">알고리즘 코테 스터디 (주 3회)</div><div class="study-item-meta"><span class="study-badge open">● 모집 중</span><span class="study-badge">4/6명</span><span class="study-badge">온라인</span></div></div>
+        <div class="study-item"><div class="study-item-title">Spring Boot 백엔드 프로젝트 팀원 모집</div><div class="study-item-meta"><span class="study-badge open">● 모집 중</span><span class="study-badge">2/4명</span><span class="study-badge">오프라인</span></div></div>
+        <div class="study-item"><div class="study-item-title">CS 기술 면접 대비 스터디 (매주 토요일)</div><div class="study-item-meta"><span class="study-badge open">● 모집 중</span><span class="study-badge">3/5명</span><span class="study-badge">온/오프</span></div></div>
+        <div class="study-item"><div class="study-item-title">React + Next.js 사이드 프로젝트 팀 모집</div><div class="study-item-meta"><span class="study-badge open">● 모집 중</span><span class="study-badge">1/4명</span><span class="study-badge">온라인</span></div></div>
+      </div>
+      <div class="right-card">
+        <div class="right-card-title">공지사항</div>
+        <div class="notice-item"><div class="notice-num">1</div><div class="notice-text">2026 상반기 서비스 이용 정책 안내</div></div>
+        <div class="notice-item"><div class="notice-num">2</div><div class="notice-text">게시글 작성 시 유의사항 (스팸/홍보 금지)</div></div>
+        <div class="notice-item"><div class="notice-num">3</div><div class="notice-text">채팅 기능 베타 오픈 안내</div></div>
+      </div>
+      <div class="right-card">
+        <div class="right-card-title">인기 태그</div>
+        <div class="tag-cloud">
+          <span class="tag-pill">#코딩테스트</span><span class="tag-pill">#React</span><span class="tag-pill">#Spring</span><span class="tag-pill">#면접준비</span><span class="tag-pill">#카카오</span><span class="tag-pill">#네이버</span><span class="tag-pill">#포트폴리오</span><span class="tag-pill">#알고리즘</span><span class="tag-pill">#TypeScript</span><span class="tag-pill">#취업후기</span><span class="tag-pill">#신입공채</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="logo">Dev<span>Link</span></div>
+        <p>개발자 취준생을 위한<br/>커뮤니티 플랫폼</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <div class="footer-col-title">서비스</div>
+          <a href="#">게시판</a><a href="#">스터디 모집</a><a href="#">채팅</a><a href="#">알림</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">계정</div>
+          <a href="#">로그인</a><a href="#">회원가입</a><a href="#">마이페이지</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">DevLink</div>
+          <a href="#">서비스 소개</a><a href="#">이용약관</a><a href="#">개인정보처리방침</a><a href="#">문의하기</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copy">© 2026 DevLink. All rights reserved.</div>
+  </footer>
+
+  <script>
+    let isLoggedIn = false;
+
+    function toggleLogin() {
+      isLoggedIn = !isLoggedIn;
+      const btn = document.getElementById('toggleBtn');
+
+      // 헤더 전환
+      document.getElementById('headerLoggedOut').style.display = isLoggedIn ? 'none' : 'flex';
+      document.getElementById('headerLoggedIn').style.display = isLoggedIn ? 'flex' : 'none';
+
+      // 사이드바 전환
+      document.getElementById('loginCta').style.display = isLoggedIn ? 'none' : 'block';
+      document.getElementById('myActivity').style.display = isLoggedIn ? 'block' : 'none';
+      document.getElementById('myStudyLink').style.display = isLoggedIn ? 'flex' : 'none';
+
+      // 글쓰기 바 활성화
+      const writeBar = document.getElementById('writeBar');
+      writeBar.style.opacity = isLoggedIn ? '1' : '0.5';
+      writeBar.style.pointerEvents = isLoggedIn ? 'auto' : 'none';
+
+      // 토글 버튼 텍스트
+      btn.textContent = isLoggedIn ? '로그아웃 상태로 전환' : '로그인 상태로 전환';
+
+      // 드롭다운 닫기
+      document.getElementById('dropdownWrap').classList.remove('open');
+    }
+
+    function toggleDropdown() {
+      document.getElementById('dropdownWrap').classList.toggle('open');
+    }
+
+    // 드롭다운 외부 클릭 시 닫기
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('dropdownWrap');
+      if (wrap && !wrap.contains(e.target)) {
+        wrap.classList.remove('open');
+      }
+    });
+
+    // 필터 버튼
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // 사이드바 메뉴 클릭
+    document.querySelectorAll('.sidebar-menu a').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
