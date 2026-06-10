@@ -32,6 +32,7 @@
 ![Axios](https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=axios&logoColor=white)
 
 ### 실시간
+![SSE](https://img.shields.io/badge/SSE-실시간알림-brightgreen?style=flat-square)
 ![WebSocket](https://img.shields.io/badge/WebSocket-STOMP-brightgreen?style=flat-square)
 
 ### 배포
@@ -70,7 +71,7 @@ src/
 - **회원 관리** — 이메일 회원가입 / 카카오 · 네이버 소셜 로그인
 - **게시판** — 자유게시판 / 면접 후기 / 기술 질문 / 취업 정보
 - **스터디 모집** — 모집글 등록, 지원, 수락/거절, 마감 처리
-- **실시간 알림** — 댓글, 스터디 지원/수락 알림 (WebSocket)
+- **실시간 알림** — 댓글, 스터디 지원/수락 알림 (SSE)
 - **실시간 채팅** — 스터디 팀원 간 채팅방 (WebSocket STOMP)
 - **마이페이지** — 프로필 수정, 내 게시글, 스터디 내역
 
@@ -121,10 +122,10 @@ VITE_NAVER_CLIENT_ID=your_naver_client_id
 ## 🌿 브랜치 전략
 
 ```
-main        # 최종 배포 브랜치
-dev         # 개발 통합 브랜치
-feature/*   # 기능 개발 브랜치 (ex. feature/auth-login)
-fix/*       # 버그 수정 브랜치 (ex. fix/notification-bug)
+main          # 최종 배포 브랜치
+test_table    # 개발 통합 브랜치 (테스트/오류 확인)
+feature/*     # 기능 개발 브랜치 (ex. feature/auth-login)
+fix/*         # 버그 수정 브랜치 (ex. fix/notification-bug)
 ```
 
 > PR 시 1명 이상 코드 리뷰 승인 필수
@@ -133,7 +134,7 @@ fix/*       # 버그 수정 브랜치 (ex. fix/notification-bug)
 
 ## 📅 개발 기간
 
-2026.06.08 ~ 2026.06.26
+2026.06.04 ~ 2026.06.30
 
 <br />
 
