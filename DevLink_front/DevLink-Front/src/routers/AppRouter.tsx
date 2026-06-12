@@ -7,6 +7,7 @@ import Footer from '../components/common/Footer'
 import AuthModal from '../components/common/AuthModal'
 
 import OAuth2RedirectPage from '../pages/OAuth2RedirectPage'
+import PostListPage from '../pages/post/PostListPage'
 
 // 로그인 필요한 라우트
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -39,10 +40,10 @@ function AppRouter() {
       <Routes>
         <Route element={<UserLayout />}>
           {/* 메인 */}
-          <Route path="/" element={<div>메인 페이지 준비 중</div>} />
+          <Route path="/" element={<PostListPage />} />
 
-          {/* 게시판 - 개발 예정 */}
-          {/* <Route path="/posts" element={<PostListPage />} /> */}
+          {/* 게시판 */}
+          <Route path="/posts" element={<PostListPage />} />
           {/* <Route path="/posts/:id" element={<PostDetailPage />} /> */}
           {/* <Route path="/posts/write" element={<PrivateRoute><PostWritePage /></PrivateRoute>} /> */}
 
