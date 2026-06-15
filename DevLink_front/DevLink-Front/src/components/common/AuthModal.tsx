@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../../store/useAuthStore'
+import { useToastStore } from '../../store/toastStore'
 import api from '../../service/api'
 
 const TERMS_CONTENT = {
@@ -78,6 +79,314 @@ const TERMS_CONTENT = {
   }
 }
 
+// ── 로그인 폼 ──────────────────────────────────────────────
+function LoginForm({ setTab }: { setTab: (tab: 'LOGIN' | 'JOIN') => void }) {
+  const { login, closeModal } = useAuthStore()
+  const { success, error } = useToastStore()
+  const [email, setEmail] = useState('')
+  const [pw, setPw] = useState('')
+  const [errors, setErrors] = useState<{ email?: string; pw?: string }>({})
+  const [isLoading, setIsLoading] = useState(false)
+
+  const validate = () => {
+    const errs: { email?: string; pw?: string } = {}
+    if (!email.trim()) errs.email = '이메일을 입력해주세요'
+    if (!pw.trim()) errs.pw = '비밀번호를 입력해주세요'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const handleSubmit = async () => {
+    if (!validate() || isLoading) return
+    setIsLoading(true)
+    try {
+      const res = await api.post('/api/auth/login', { email, password: pw })
+      const { userId, email: userEmail, nickname, role, accessToken } = res.data.data
+      login(userId, userEmail, nickname, role, accessToken)
+      success('로그인되었습니다.')
+      closeModal()
+    } catch (err: any) {
+      error(err.response?.data?.message || '이메일 또는 비밀번호가 올바르지 않습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <div style={{ fontSize: '28px', fontWeight: 600, color: '#111827', letterSpacing: '-0.5px', marginBottom: '20px' }}>로그인</div>
+      <div style={{ marginBottom: '10px' }}>
+        <input type="email" placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)}
+          style={{ width: '100%', background: '#fafafa', border: `1px solid ${errors.email ? '#EF4444' : '#e8e8e8'}`, padding: '12px 14px', color: '#111', fontSize: '13px', outline: 'none', boxSizing: 'border-box', borderRadius: '6px' }} />
+        {errors.email && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.email}</div>}
+      </div>
+      <div style={{ marginBottom: '10px' }}>
+        <input type="password" placeholder="비밀번호" value={pw} onChange={e => setPw(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+          style={{ width: '100%', background: '#fafafa', border: `1px solid ${errors.pw ? '#EF4444' : '#e8e8e8'}`, padding: '12px 14px', color: '#111', fontSize: '13px', outline: 'none', boxSizing: 'border-box', borderRadius: '6px' }} />
+        {errors.pw && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.pw}</div>}
+      </div>
+      <button onClick={handleSubmit} disabled={isLoading}
+        style={{ width: '100%', background: isLoading ? '#aaa' : '#4338CA', border: 'none', padding: '14px', color: '#fff', fontSize: '14px', cursor: isLoading ? 'default' : 'pointer', marginTop: '8px', fontWeight: 500, borderRadius: '6px', transition: 'background 0.2s' }}>
+        {isLoading ? '로그인 중...' : '로그인'}
+      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0' }}>
+        <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
+        <span style={{ fontSize: '12px', color: '#bbb' }}>소셜 로그인</span>
+        <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
+      </div>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/kakao`}
+          style={{ flex: 1, background: '#FEE500', border: 'none', padding: '12px 8px', color: '#3C1E1E', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
+          <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#3C1E1E', color: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>K</div>
+          카카오 로그인
+        </button>
+        <button
+          onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/naver`}
+          style={{ flex: 1, background: '#03C75A', border: 'none', padding: '12px 8px', color: '#fff', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
+          <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#fff', color: '#03C75A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>N</div>
+          네이버 로그인
+        </button>
+      </div>
+      <div style={{ marginTop: '18px', textAlign: 'center', fontSize: '13px', color: '#bbb' }}>
+        아직 회원이 아니신가요?{' '}
+        <span onClick={() => setTab('JOIN')} style={{ color: '#4338CA', cursor: 'pointer', fontWeight: 500 }}>회원가입 →</span>
+      </div>
+    </div>
+  )
+}
+
+// ── 회원가입 폼 ────────────────────────────────────────────
+function JoinForm({
+  setTab,
+  setTermsModal
+}: {
+  setTab: (tab: 'LOGIN' | 'JOIN') => void
+  setTermsModal: (v: 'terms' | 'privacy' | 'marketing' | null) => void
+}) {
+  const { success, error } = useToastStore()
+  const [form, setForm] = useState({ email: '', code: '', pw: '', pwConfirm: '', nickname: '' })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [emailVerified, setEmailVerified] = useState(false)
+  const [codeSent, setCodeSent] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [timer, setTimer] = useState(180)
+  const [agrees, setAgrees] = useState({ all: false, terms: false, privacy: false, marketing: false })
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (!codeSent || emailVerified || timer <= 0) return
+    const interval = setInterval(() => setTimer(t => t - 1), 1000)
+    return () => clearInterval(interval)
+  }, [codeSent, emailVerified, timer])
+
+  const formatTimer = () => {
+    const m = Math.floor(timer / 60)
+    const s = timer % 60
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  const handleChange = (key: string, value: string) => {
+    setForm(prev => ({ ...prev, [key]: value }))
+    setErrors(prev => ({ ...prev, [key]: '' }))
+  }
+
+  const handleAgree = (key: string) => {
+    if (key === 'all') {
+      const next = !agrees.all
+      setAgrees({ all: next, terms: next, privacy: next, marketing: next })
+    } else {
+      const next = { ...agrees, [key]: !agrees[key as keyof typeof agrees] }
+      next.all = next.terms && next.privacy && next.marketing
+      setAgrees(next)
+    }
+  }
+
+  const handleSendCode = async () => {
+    if (!form.email.trim()) { setErrors(p => ({ ...p, email: '이메일을 입력해주세요' })); return }
+    if (isSending) return
+    setIsSending(true)
+    try {
+      await api.post('/api/auth/email/send', null, { params: { email: form.email } })
+      setCodeSent(true)
+      setTimer(180)
+      setErrors(p => ({ ...p, email: '' }))
+      success('인증번호가 발송되었습니다.')
+    } catch {
+      error('인증 메일 발송에 실패했습니다.')
+      setErrors(p => ({ ...p, email: '인증 메일 발송에 실패했습니다' }))
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  const handleVerifyCode = async () => {
+    if (!form.code.trim()) { setErrors(p => ({ ...p, code: '인증번호를 입력해주세요' })); return }
+    try {
+      await api.post('/api/auth/email/verify', null, { params: { email: form.email, code: form.code } })
+      setEmailVerified(true)
+      setErrors(p => ({ ...p, code: '' }))
+      success('이메일 인증이 완료되었습니다.')
+    } catch (err: any) {
+      const msg = err.response?.data?.message || '인증번호가 올바르지 않습니다'
+      error(msg)
+      setErrors(p => ({ ...p, code: msg }))
+    }
+  }
+
+  const validate = () => {
+    const errs: Record<string, string> = {}
+    if (!form.email.trim()) errs.email = '이메일을 입력해주세요'
+    else if (!emailVerified) errs.email = '이메일 인증을 완료해주세요'
+    if (!form.pw.trim()) errs.pw = '비밀번호를 입력해주세요'
+    else if (form.pw.length < 8) errs.pw = '비밀번호는 8자 이상이어야 합니다'
+    if (!form.pwConfirm.trim()) errs.pwConfirm = '비밀번호 확인을 입력해주세요'
+    else if (form.pw !== form.pwConfirm) errs.pwConfirm = '비밀번호가 일치하지 않습니다'
+    if (!form.nickname.trim()) errs.nickname = '닉네임을 입력해주세요'
+    if (!agrees.terms) errs.terms = '필수 약관에 동의해주세요'
+    if (!agrees.privacy) errs.privacy = '필수 약관에 동의해주세요'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const handleSubmit = async () => {
+    if (!validate() || isLoading) return
+    setIsLoading(true)
+    try {
+      await api.post('/api/auth/signup', {
+        email: form.email,
+        password: form.pw,
+        nickname: form.nickname,
+      })
+      success('회원가입이 완료되었습니다. 로그인해주세요.')
+      setTab('LOGIN')
+    } catch (err: any) {
+      error(err.response?.data?.message || '회원가입에 실패했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const inputStyle = (key: string): React.CSSProperties => ({
+    width: '100%', background: '#fafafa',
+    border: `1px solid ${errors[key] ? '#EF4444' : key === 'email' && emailVerified ? '#059669' : '#e8e8e8'}`,
+    padding: '12px 14px', color: '#111', fontSize: '13px',
+    outline: 'none', boxSizing: 'border-box' as const, borderRadius: '6px'
+  })
+
+  const btnInlineStyle: React.CSSProperties = {
+    background: isSending ? '#aaa' : '#4338CA', border: 'none', color: '#fff', fontSize: '12px',
+    padding: '0 14px', cursor: isSending ? 'default' : 'pointer', whiteSpace: 'nowrap',
+    fontWeight: 500, borderRadius: '6px', height: '42px'
+  }
+
+  return (
+    <div>
+      <div style={{ fontSize: '28px', fontWeight: 600, color: '#111827', letterSpacing: '-0.5px', marginBottom: '20px' }}>회원가입</div>
+
+      {/* 이메일 */}
+      <div style={{ marginBottom: '10px' }}>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <input type="email" placeholder="이메일" value={form.email} onChange={e => handleChange('email', e.target.value)} style={{ ...inputStyle('email'), flex: 1 }} />
+          <button onClick={handleSendCode} disabled={isSending} style={btnInlineStyle}>
+            {isSending ? '발송 중...' : '인증 발송'}
+          </button>
+        </div>
+        {errors.email && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.email}</div>}
+      </div>
+
+      {/* 인증코드 */}
+      {codeSent && (
+        <div style={{ marginBottom: '10px' }}>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <input type="text" placeholder="인증번호 6자리" value={form.code} onChange={e => handleChange('code', e.target.value)} style={{ ...inputStyle('code'), flex: 1 }} />
+            <button onClick={handleVerifyCode} style={{ background: '#4338CA', border: 'none', color: '#fff', fontSize: '12px', padding: '0 14px', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 500, borderRadius: '6px', height: '42px' }}>확인</button>
+            {!emailVerified && <span style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{formatTimer()}</span>}
+            {emailVerified && <span style={{ fontSize: '12px', color: '#059669', whiteSpace: 'nowrap' }}>✓ 완료</span>}
+          </div>
+          {errors.code && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.code}</div>}
+        </div>
+      )}
+
+      {/* 비밀번호 */}
+      <div style={{ marginBottom: '10px' }}>
+        <input type="password" placeholder="비밀번호 (8자 이상)" value={form.pw} onChange={e => handleChange('pw', e.target.value)} style={inputStyle('pw')} />
+        {errors.pw && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.pw}</div>}
+      </div>
+
+      {/* 비밀번호 확인 */}
+      <div style={{ marginBottom: '10px' }}>
+        <input type="password" placeholder="비밀번호 확인" value={form.pwConfirm} onChange={e => handleChange('pwConfirm', e.target.value)} style={inputStyle('pwConfirm')} />
+        {errors.pwConfirm && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.pwConfirm}</div>}
+      </div>
+
+      {/* 닉네임 */}
+      <div style={{ marginBottom: '10px' }}>
+        <input type="text" placeholder="닉네임 (2~10자)" value={form.nickname} onChange={e => handleChange('nickname', e.target.value)} style={inputStyle('nickname')} />
+        {errors.nickname && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.nickname}</div>}
+      </div>
+
+      {/* 약관 */}
+      <div style={{ border: '1px solid #eee', padding: '14px 16px', background: '#fafafa', margin: '14px 0 8px', borderRadius: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px', borderBottom: '1px solid #eee', marginBottom: '10px' }}>
+          <input type="checkbox" checked={agrees.all} onChange={() => handleAgree('all')} style={{ accentColor: '#4338CA', width: '14px', height: '14px', cursor: 'pointer' }} />
+          <label style={{ fontSize: '14px', color: '#111', cursor: 'pointer', fontWeight: 700 }}>전체 동의</label>
+        </div>
+        {[
+          { key: 'terms', label: '서비스 이용약관', required: true },
+          { key: 'privacy', label: '개인정보 처리방침', required: true },
+          { key: 'marketing', label: '마케팅 수신 동의', required: false },
+        ].map(item => (
+          <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input type="checkbox" checked={agrees[item.key as keyof typeof agrees] as boolean} onChange={() => handleAgree(item.key)} style={{ accentColor: '#4338CA', width: '14px', height: '14px', cursor: 'pointer' }} />
+              <label style={{ fontSize: '13px', color: '#888', cursor: 'pointer' }}>
+                <span style={{ color: item.required ? '#4338CA' : '#bbb', fontWeight: 500 }}>[{item.required ? '필수' : '선택'}]</span> {item.label}
+              </label>
+            </div>
+            <span onClick={() => setTermsModal(item.key as 'terms' | 'privacy' | 'marketing')}
+              style={{ fontSize: '12px', color: '#bbb', cursor: 'pointer', textDecoration: 'underline' }}>보기</span>
+          </div>
+        ))}
+      </div>
+      {(errors.terms || errors.privacy) && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px' }}>✕ 필수 약관에 동의해주세요</div>}
+
+      {/* 소셜 간편가입 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '14px 0 10px' }}>
+        <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
+        <span style={{ fontSize: '12px', color: '#bbb' }}>소셜로 간편 가입</span>
+        <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
+      </div>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+        <button
+          onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/kakao`}
+          style={{ flex: 1, background: '#FEE500', border: 'none', padding: '12px 8px', color: '#3C1E1E', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
+          <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#3C1E1E', color: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>K</div>
+          카카오로 가입
+        </button>
+        <button
+          onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/naver`}
+          style={{ flex: 1, background: '#03C75A', border: 'none', padding: '12px 8px', color: '#fff', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
+          <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#fff', color: '#03C75A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>N</div>
+          네이버로 가입
+        </button>
+      </div>
+
+      <button onClick={handleSubmit} disabled={isLoading}
+        style={{ width: '100%', background: isLoading ? '#aaa' : '#4338CA', border: 'none', padding: '14px', color: '#fff', fontSize: '14px', cursor: isLoading ? 'default' : 'pointer', fontWeight: 500, borderRadius: '6px', transition: 'background 0.2s' }}>
+        {isLoading ? '가입 중...' : '회원가입'}
+      </button>
+
+      <div style={{ marginTop: '18px', textAlign: 'center', fontSize: '13px', color: '#bbb' }}>
+        이미 회원이신가요?{' '}
+        <span onClick={() => setTab('LOGIN')} style={{ color: '#4338CA', cursor: 'pointer', fontWeight: 500 }}>로그인 →</span>
+      </div>
+    </div>
+  )
+}
+
+// ── AuthModal ──────────────────────────────────────────────
 function AuthModal() {
   const { activeModal, closeModal } = useAuthStore()
   const [tab, setTab] = useState<'LOGIN' | 'JOIN'>('LOGIN')
@@ -151,298 +460,6 @@ function AuthModal() {
     )
   }
 
-  // ── 로그인 폼 ──────────────────────────────────────────────
-  const LoginForm = () => {
-    const { login, closeModal } = useAuthStore()
-    const [email, setEmail] = useState('')
-    const [pw, setPw] = useState('')
-    const [errors, setErrors] = useState<{ email?: string; pw?: string }>({})
-    const [serverError, setServerError] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-
-    const validate = () => {
-      const errs: { email?: string; pw?: string } = {}
-      if (!email.trim()) errs.email = '이메일을 입력해주세요'
-      if (!pw.trim()) errs.pw = '비밀번호를 입력해주세요'
-      setErrors(errs)
-      return Object.keys(errs).length === 0
-    }
-
-    const handleSubmit = async () => {
-      if (!validate() || isLoading) return
-      setIsLoading(true)
-      setServerError('')
-      try {
-        const res = await api.post('/api/auth/login', { email, password: pw })
-        const { userId, email: userEmail, nickname, role, accessToken } = res.data.data
-        login(userId, userEmail, nickname, role, accessToken)
-        closeModal()
-      } catch (err: any) {
-        setServerError(err.response?.data?.message || '이메일 또는 비밀번호가 올바르지 않습니다.')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    return (
-      <div>
-        <div style={{ fontSize: '28px', fontWeight: 600, color: '#111827', letterSpacing: '-0.5px', marginBottom: '20px' }}>로그인</div>
-        <div style={{ marginBottom: '10px' }}>
-          <input type="email" placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)}
-            style={{ width: '100%', background: '#fafafa', border: `1px solid ${errors.email ? '#EF4444' : '#e8e8e8'}`, padding: '12px 14px', color: '#111', fontSize: '13px', outline: 'none', boxSizing: 'border-box', borderRadius: '6px' }} />
-          {errors.email && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.email}</div>}
-        </div>
-        <div style={{ marginBottom: '10px' }}>
-          <input type="password" placeholder="비밀번호" value={pw} onChange={e => setPw(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            style={{ width: '100%', background: '#fafafa', border: `1px solid ${errors.pw ? '#EF4444' : '#e8e8e8'}`, padding: '12px 14px', color: '#111', fontSize: '13px', outline: 'none', boxSizing: 'border-box', borderRadius: '6px' }} />
-          {errors.pw && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.pw}</div>}
-        </div>
-        {serverError && (
-          <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px' }}>✕ {serverError}</div>
-        )}
-        <button onClick={handleSubmit} disabled={isLoading}
-          style={{ width: '100%', background: isLoading ? '#aaa' : '#4338CA', border: 'none', padding: '14px', color: '#fff', fontSize: '14px', cursor: isLoading ? 'default' : 'pointer', marginTop: '8px', fontWeight: 500, borderRadius: '6px', transition: 'background 0.2s' }}>
-          {isLoading ? '로그인 중...' : '로그인'}
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0' }}>
-          <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
-          <span style={{ fontSize: '12px', color: '#bbb' }}>소셜 로그인</span>
-          <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/kakao`}
-            style={{ flex: 1, background: '#FEE500', border: 'none', padding: '12px 8px', color: '#3C1E1E', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
-            <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#3C1E1E', color: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>K</div>
-            카카오 로그인
-          </button>
-          <button
-            onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/naver`}
-            style={{ flex: 1, background: '#03C75A', border: 'none', padding: '12px 8px', color: '#fff', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
-            <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#fff', color: '#03C75A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>N</div>
-            네이버 로그인
-          </button>
-        </div>
-        <div style={{ marginTop: '18px', textAlign: 'center', fontSize: '13px', color: '#bbb' }}>
-          아직 회원이 아니신가요?{' '}
-          <span onClick={() => setTab('JOIN')} style={{ color: '#4338CA', cursor: 'pointer', fontWeight: 500 }}>회원가입 →</span>
-        </div>
-      </div>
-    )
-  }
-
-  // ── 회원가입 폼 ────────────────────────────────────────────
-  const JoinForm = () => {
-    const [form, setForm] = useState({ email: '', code: '', pw: '', pwConfirm: '', nickname: '' })
-    const [errors, setErrors] = useState<Record<string, string>>({})
-    const [emailVerified, setEmailVerified] = useState(false)
-    const [codeSent, setCodeSent] = useState(false)
-    const [timer, setTimer] = useState(180)
-    const [agrees, setAgrees] = useState({ all: false, terms: false, privacy: false, marketing: false })
-    const [serverError, setServerError] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-
-    useEffect(() => {
-      if (!codeSent || emailVerified || timer <= 0) return
-      const interval = setInterval(() => setTimer(t => t - 1), 1000)
-      return () => clearInterval(interval)
-    }, [codeSent, emailVerified, timer])
-
-    const formatTimer = () => {
-      const m = Math.floor(timer / 60)
-      const s = timer % 60
-      return `${m}:${s.toString().padStart(2, '0')}`
-    }
-
-    const handleChange = (key: string, value: string) => {
-      setForm(prev => ({ ...prev, [key]: value }))
-      setErrors(prev => ({ ...prev, [key]: '' }))
-    }
-
-    const handleAgree = (key: string) => {
-      if (key === 'all') {
-        const next = !agrees.all
-        setAgrees({ all: next, terms: next, privacy: next, marketing: next })
-      } else {
-        const next = { ...agrees, [key]: !agrees[key as keyof typeof agrees] }
-        next.all = next.terms && next.privacy && next.marketing
-        setAgrees(next)
-      }
-    }
-
-    const handleSendCode = async () => {
-      if (!form.email.trim()) { setErrors(p => ({ ...p, email: '이메일을 입력해주세요' })); return }
-      try {
-        await api.post('/api/auth/email/send', { email: form.email })
-        setCodeSent(true); setTimer(180)
-        setErrors(p => ({ ...p, email: '' }))
-      } catch {
-        setErrors(p => ({ ...p, email: '인증 메일 발송에 실패했습니다' }))
-      }
-    }
-
-    const handleVerifyCode = async () => {
-      if (!form.code.trim()) { setErrors(p => ({ ...p, code: '인증번호를 입력해주세요' })); return }
-      try {
-        await api.post('/api/auth/email/verify', { email: form.email, code: form.code })
-        setEmailVerified(true)
-        setErrors(p => ({ ...p, code: '' }))
-      } catch (err: any) {
-        setErrors(p => ({ ...p, code: err.response?.data?.message || '인증번호가 올바르지 않습니다' }))
-      }
-    }
-
-    const validate = () => {
-      const errs: Record<string, string> = {}
-      if (!form.email.trim()) errs.email = '이메일을 입력해주세요'
-      else if (!emailVerified) errs.email = '이메일 인증을 완료해주세요'
-      if (!form.pw.trim()) errs.pw = '비밀번호를 입력해주세요'
-      else if (form.pw.length < 8) errs.pw = '비밀번호는 8자 이상이어야 합니다'
-      if (!form.pwConfirm.trim()) errs.pwConfirm = '비밀번호 확인을 입력해주세요'
-      else if (form.pw !== form.pwConfirm) errs.pwConfirm = '비밀번호가 일치하지 않습니다'
-      if (!form.nickname.trim()) errs.nickname = '닉네임을 입력해주세요'
-      if (!agrees.terms) errs.terms = '필수 약관에 동의해주세요'
-      if (!agrees.privacy) errs.privacy = '필수 약관에 동의해주세요'
-      setErrors(errs)
-      return Object.keys(errs).length === 0
-    }
-
-    const handleSubmit = async () => {
-      if (!validate() || isLoading) return
-      setIsLoading(true)
-      setServerError('')
-      try {
-        await api.post('/api/auth/signup', {
-          email: form.email,
-          password: form.pw,
-          nickname: form.nickname,
-        })
-        setTab('LOGIN')
-      } catch (err: any) {
-        setServerError(err.response?.data?.message || '회원가입에 실패했습니다.')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    const inputStyle = (key: string): React.CSSProperties => ({
-      width: '100%', background: '#fafafa',
-      border: `1px solid ${errors[key] ? '#EF4444' : key === 'email' && emailVerified ? '#059669' : '#e8e8e8'}`,
-      padding: '12px 14px', color: '#111', fontSize: '13px',
-      outline: 'none', boxSizing: 'border-box' as const, borderRadius: '6px'
-    })
-
-    const btnInlineStyle: React.CSSProperties = {
-      background: '#4338CA', border: 'none', color: '#fff', fontSize: '12px',
-      padding: '0 14px', cursor: 'pointer', whiteSpace: 'nowrap',
-      fontWeight: 500, borderRadius: '6px', height: '42px'
-    }
-
-    return (
-      <div>
-        <div style={{ fontSize: '28px', fontWeight: 600, color: '#111827', letterSpacing: '-0.5px', marginBottom: '20px' }}>회원가입</div>
-
-        {/* 이메일 */}
-        <div style={{ marginBottom: '10px' }}>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <input type="email" placeholder="이메일" value={form.email} onChange={e => handleChange('email', e.target.value)} style={{ ...inputStyle('email'), flex: 1 }} />
-            <button onClick={handleSendCode} style={btnInlineStyle}>인증 발송</button>
-          </div>
-          {errors.email && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.email}</div>}
-        </div>
-
-        {/* 인증코드 */}
-        {codeSent && (
-          <div style={{ marginBottom: '10px' }}>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-              <input type="text" placeholder="인증번호 6자리" value={form.code} onChange={e => handleChange('code', e.target.value)} style={{ ...inputStyle('code'), flex: 1 }} />
-              <button onClick={handleVerifyCode} style={btnInlineStyle}>확인</button>
-              {!emailVerified && <span style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{formatTimer()}</span>}
-              {emailVerified && <span style={{ fontSize: '12px', color: '#059669', whiteSpace: 'nowrap' }}>✓ 완료</span>}
-            </div>
-            {errors.code && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.code}</div>}
-          </div>
-        )}
-
-        {/* 비밀번호 */}
-        <div style={{ marginBottom: '10px' }}>
-          <input type="password" placeholder="비밀번호 (8자 이상)" value={form.pw} onChange={e => handleChange('pw', e.target.value)} style={inputStyle('pw')} />
-          {errors.pw && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.pw}</div>}
-        </div>
-
-        {/* 비밀번호 확인 */}
-        <div style={{ marginBottom: '10px' }}>
-          <input type="password" placeholder="비밀번호 확인" value={form.pwConfirm} onChange={e => handleChange('pwConfirm', e.target.value)} style={inputStyle('pwConfirm')} />
-          {errors.pwConfirm && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.pwConfirm}</div>}
-        </div>
-
-        {/* 닉네임 */}
-        <div style={{ marginBottom: '10px' }}>
-          <input type="text" placeholder="닉네임 (2~10자)" value={form.nickname} onChange={e => handleChange('nickname', e.target.value)} style={inputStyle('nickname')} />
-          {errors.nickname && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.nickname}</div>}
-        </div>
-
-        {/* 약관 */}
-        <div style={{ border: '1px solid #eee', padding: '14px 16px', background: '#fafafa', margin: '14px 0 8px', borderRadius: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px', borderBottom: '1px solid #eee', marginBottom: '10px' }}>
-            <input type="checkbox" checked={agrees.all} onChange={() => handleAgree('all')} style={{ accentColor: '#4338CA', width: '14px', height: '14px', cursor: 'pointer' }} />
-            <label style={{ fontSize: '14px', color: '#111', cursor: 'pointer', fontWeight: 700 }}>전체 동의</label>
-          </div>
-          {[
-            { key: 'terms', label: '서비스 이용약관', required: true },
-            { key: 'privacy', label: '개인정보 처리방침', required: true },
-            { key: 'marketing', label: '마케팅 수신 동의', required: false },
-          ].map(item => (
-            <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input type="checkbox" checked={agrees[item.key as keyof typeof agrees] as boolean} onChange={() => handleAgree(item.key)} style={{ accentColor: '#4338CA', width: '14px', height: '14px', cursor: 'pointer' }} />
-                <label style={{ fontSize: '13px', color: '#888', cursor: 'pointer' }}>
-                  <span style={{ color: item.required ? '#4338CA' : '#bbb', fontWeight: 500 }}>[{item.required ? '필수' : '선택'}]</span> {item.label}
-                </label>
-              </div>
-              <span onClick={() => setTermsModal(item.key as 'terms' | 'privacy' | 'marketing')}
-                style={{ fontSize: '12px', color: '#bbb', cursor: 'pointer', textDecoration: 'underline' }}>보기</span>
-            </div>
-          ))}
-        </div>
-        {(errors.terms || errors.privacy) && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px' }}>✕ 필수 약관에 동의해주세요</div>}
-
-        {/* 소셜 간편가입 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '14px 0 10px' }}>
-          <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
-          <span style={{ fontSize: '12px', color: '#bbb' }}>소셜로 간편 가입</span>
-          <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
-        </div>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-          <button
-            onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/kakao`}
-            style={{ flex: 1, background: '#FEE500', border: 'none', padding: '12px 8px', color: '#3C1E1E', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
-            <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#3C1E1E', color: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>K</div>
-            카카오로 가입
-          </button>
-          <button
-            onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/naver`}
-            style={{ flex: 1, background: '#03C75A', border: 'none', padding: '12px 8px', color: '#fff', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
-            <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#fff', color: '#03C75A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>N</div>
-            네이버로 가입
-          </button>
-        </div>
-
-        {serverError && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px' }}>✕ {serverError}</div>}
-        <button onClick={handleSubmit} disabled={isLoading}
-          style={{ width: '100%', background: isLoading ? '#aaa' : '#4338CA', border: 'none', padding: '14px', color: '#fff', fontSize: '14px', cursor: isLoading ? 'default' : 'pointer', fontWeight: 500, borderRadius: '6px', transition: 'background 0.2s' }}>
-          {isLoading ? '가입 중...' : '회원가입'}
-        </button>
-
-        <div style={{ marginTop: '18px', textAlign: 'center', fontSize: '13px', color: '#bbb' }}>
-          이미 회원이신가요?{' '}
-          <span onClick={() => setTab('LOGIN')} style={{ color: '#4338CA', cursor: 'pointer', fontWeight: 500 }}>로그인 →</span>
-        </div>
-      </div>
-    )
-  }
-
   // ── 모달 공통 레이아웃 ──────────────────────────────────────
   const modalContent = (
     <div style={{
@@ -468,7 +485,10 @@ function AuthModal() {
             </div>
           ))}
         </div>
-        {tab === 'LOGIN' ? <LoginForm /> : <JoinForm />}
+        {tab === 'LOGIN'
+          ? <LoginForm setTab={setTab} />
+          : <JoinForm setTab={setTab} setTermsModal={setTermsModal} />
+        }
       </div>
     </div>
   )
