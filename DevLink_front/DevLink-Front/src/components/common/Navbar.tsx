@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useNotificationStore } from '../../store/notificationStore'
+import { useToastStore } from '../../store/toastStore'
 import { Bell, Shield, User } from 'lucide-react'
 
 function Navbar() {
@@ -9,6 +10,7 @@ function Navbar() {
   const location = useLocation()
   const { isLoggedIn, logout, setActiveModal, role, nickname } = useAuthStore()
   const { unreadCount } = useNotificationStore()
+  const { success } = useToastStore()
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -19,7 +21,13 @@ function Navbar() {
 
   const isAdmin = role === 'ROLE_ADMIN'
 
-  // 외부 클릭 시 드롭다운 닫기
+  const handleLogout = () => {
+    logout()
+    success('로그아웃되었습니다.')
+    setDropdownOpen(false)
+    setMobileMenuOpen(false)
+  }
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -33,7 +41,6 @@ function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // 라우트 변경 시 메뉴 닫기
   useEffect(() => {
     setMobileMenuOpen(false)
     setDropdownOpen(false)
@@ -107,7 +114,6 @@ function Navbar() {
                   </button>
                   {notiOpen && (
                     <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: '320px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.14)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200 }}>
-                      {/* TODO: 알림 목록 컴포넌트 연동 예정 */}
                       <div style={{ padding: '16px', fontSize: '13px', color: '#6B7280', textAlign: 'center' }}>알림이 없습니다</div>
                     </div>
                   )}
@@ -148,7 +154,7 @@ function Navbar() {
                         ))}
                         <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.08)' }}>
                           <div
-                            onClick={() => { logout(); setDropdownOpen(false) }}
+                            onClick={handleLogout}
                             style={{ padding: '10px 16px', fontSize: '13px', color: '#EF4444', cursor: 'pointer', transition: 'background 0.1s' }}
                             onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -233,7 +239,7 @@ function Navbar() {
                   관리자 <span style={{ color: '#ccc', fontSize: '10px' }}>→</span>
                 </div>
               )}
-              <div onClick={logout} style={{ padding: '16px 24px', cursor: 'pointer', fontSize: '14px', color: '#EF4444' }}>
+              <div onClick={handleLogout} style={{ padding: '16px 24px', cursor: 'pointer', fontSize: '14px', color: '#EF4444' }}>
                 로그아웃
               </div>
             </>
