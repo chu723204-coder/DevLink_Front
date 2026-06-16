@@ -8,21 +8,31 @@ import AuthModal from '../components/common/AuthModal'
 
 import OAuth2RedirectPage from '../pages/OAuth2RedirectPage'
 import PostListPage from '../pages/post/PostListPage'
+import PostDetailPage from '../pages/post/PostDetailPage'
+import PostWritePage from '../pages/post/PostWritePage'
+import PostEditPage from '../pages/post/PostEditPage'
+import StudyListPage from '../pages/study/StudyListPage'
+import StudyDetailPage from '../pages/study/StudyDetailPage'
+import StudyWritePage from '../pages/study/StudyWritePage'
+import StudyEditPage from '../pages/study/StudyEditPage'
+import MyPage from '../pages/mypage/MyPage'
+import MyPostsPage from '../pages/mypage/MyPostsPage'
+import MyStudiesPage from '../pages/mypage/MyStudiesPage'
+import NotificationPage from '../pages/notification/NotificationPage'
+import ChatListPage from '../pages/chat/ChatListPage'
+import ChatRoomPage from '../pages/chat/ChatRoomPage'
 
-// 로그인 필요한 라우트
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuthStore()
   return isLoggedIn ? <>{children}</> : <Navigate to="/" replace />
 }
 
-// 관리자만 접근 가능한 라우트
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn, role } = useAuthStore()
   if (!isLoggedIn || role !== 'ROLE_ADMIN') return <Navigate to="/" replace />
   return <>{children}</>
 }
 
-// 공통 레이아웃
 function UserLayout() {
   return (
     <>
@@ -39,40 +49,35 @@ function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route element={<UserLayout />}>
-          {/* 메인 */}
           <Route path="/" element={<PostListPage />} />
 
           {/* 게시판 */}
           <Route path="/posts" element={<PostListPage />} />
-          {/* <Route path="/posts/:id" element={<PostDetailPage />} /> */}
-          {/* <Route path="/posts/write" element={<PrivateRoute><PostWritePage /></PrivateRoute>} /> */}
+          <Route path="/posts/:postId" element={<PostDetailPage />} />
+          <Route path="/posts/write" element={<PrivateRoute><PostWritePage /></PrivateRoute>} />
+          <Route path="/posts/:postId/edit" element={<PrivateRoute><PostEditPage /></PrivateRoute>} />
 
-          {/* 스터디 - 개발 예정 */}
-          {/* <Route path="/studies" element={<StudyListPage />} /> */}
-          {/* <Route path="/studies/:id" element={<StudyDetailPage />} /> */}
-          {/* <Route path="/studies/write" element={<PrivateRoute><StudyWritePage /></PrivateRoute>} /> */}
+          {/* 스터디 */}
+          <Route path="/studies" element={<StudyListPage />} />
+          <Route path="/studies/:studyId" element={<StudyDetailPage />} />
+          <Route path="/studies/write" element={<PrivateRoute><StudyWritePage /></PrivateRoute>} />
+          <Route path="/studies/:studyId/edit" element={<PrivateRoute><StudyEditPage /></PrivateRoute>} />
 
-          {/* 채팅 - 개발 예정 */}
-          {/* <Route path="/chat" element={<PrivateRoute><ChatListPage /></PrivateRoute>} /> */}
-          {/* <Route path="/chat/:roomId" element={<PrivateRoute><ChatRoomPage /></PrivateRoute>} /> */}
+          {/* 마이페이지 */}
+          <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} />
+          <Route path="/mypage/posts" element={<PrivateRoute><MyPostsPage /></PrivateRoute>} />
+          <Route path="/mypage/studies" element={<PrivateRoute><MyStudiesPage /></PrivateRoute>} />
 
-          {/* 알림 - 개발 예정 */}
-          {/* <Route path="/notifications" element={<PrivateRoute><NotificationPage /></PrivateRoute>} /> */}
+          {/* 알림 */}
+          <Route path="/notifications" element={<PrivateRoute><NotificationPage /></PrivateRoute>} />
 
-          {/* 마이페이지 - 개발 예정 */}
-          {/* <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} /> */}
-          {/* <Route path="/mypage/posts" element={<PrivateRoute><MyPostsPage /></PrivateRoute>} /> */}
-          {/* <Route path="/mypage/studies" element={<PrivateRoute><MyStudiesPage /></PrivateRoute>} /> */}
+          {/* 채팅 */}
+          <Route path="/chat" element={<PrivateRoute><ChatListPage /></PrivateRoute>} />
+          <Route path="/chat/:roomId" element={<PrivateRoute><ChatRoomPage /></PrivateRoute>} />
         </Route>
 
         {/* 소셜 로그인 리다이렉트 */}
         <Route path="/oauth2/redirect" element={<OAuth2RedirectPage />} />
-
-        {/* 관리자 - 개발 예정 */}
-        {/* <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} /> */}
-        {/* <Route path="/admin/members" element={<AdminRoute><AdminMemberPage /></AdminRoute>} /> */}
-        {/* <Route path="/admin/posts" element={<AdminRoute><AdminPostPage /></AdminRoute>} /> */}
-        {/* <Route path="/admin/notices" element={<AdminRoute><AdminNoticePage /></AdminRoute>} /> */}
       </Routes>
     </BrowserRouter>
   )
