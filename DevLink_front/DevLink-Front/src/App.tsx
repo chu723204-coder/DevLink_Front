@@ -22,7 +22,12 @@ function App() {
 
   return (
     <>
-      <AppRouter />
+      {/* ✅ 최소 높이 설정으로 푸터 공백 해결 */}
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1 }}>
+          <AppRouter />
+        </div>
+      </div>
       <Toast
         variant={variant}
         position={position}

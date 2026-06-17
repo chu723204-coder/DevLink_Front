@@ -112,46 +112,116 @@ function LoginForm({ setTab }: { setTab: (tab: 'LOGIN' | 'JOIN') => void }) {
     }
   }
 
+  const inputStyle = (hasError?: string): React.CSSProperties => ({
+    width: '100%', background: '#F9FAFB',
+    border: `1px solid ${hasError ? '#EF4444' : '#E5E7EB'}`,
+    padding: '12px 16px', color: '#111827', fontSize: '14px',
+    outline: 'none', boxSizing: 'border-box', borderRadius: '10px',
+    transition: 'border-color 0.15s'
+  })
+
   return (
     <div>
-      <div style={{ fontSize: '28px', fontWeight: 600, color: '#111827', letterSpacing: '-0.5px', marginBottom: '20px' }}>로그인</div>
+      {/* ✅ 로고 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <div style={{
+          width: '28px', height: '28px', borderRadius: '8px',
+          background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 4px rgba(67,56,202,0.3)'
+        }}>
+          <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>D</span>
+        </div>
+        <span style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>
+          Dev<span style={{ color: '#4338CA' }}>Link</span>
+        </span>
+      </div>
+      <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', letterSpacing: '-0.5px', marginBottom: '6px' }}>
+        로그인
+      </div>
+      <div style={{ fontSize: '13px', color: '#9CA3AF', marginBottom: '24px' }}>
+        개발자 취준생 커뮤니티에 오신 걸 환영해요 👋
+      </div>
+
       <div style={{ marginBottom: '10px' }}>
-        <input type="email" placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)}
-          style={{ width: '100%', background: '#fafafa', border: `1px solid ${errors.email ? '#EF4444' : '#e8e8e8'}`, padding: '12px 14px', color: '#111', fontSize: '13px', outline: 'none', boxSizing: 'border-box', borderRadius: '6px' }} />
+        <input
+          type="email" placeholder="이메일" value={email}
+          onChange={e => setEmail(e.target.value)}
+          style={inputStyle(errors.email)}
+          onFocus={e => { if (!errors.email) e.currentTarget.style.borderColor = '#4338CA' }}
+          onBlur={e => { if (!errors.email) e.currentTarget.style.borderColor = '#E5E7EB' }}
+        />
         {errors.email && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.email}</div>}
       </div>
-      <div style={{ marginBottom: '10px' }}>
-        <input type="password" placeholder="비밀번호" value={pw} onChange={e => setPw(e.target.value)}
+      <div style={{ marginBottom: '16px' }}>
+        <input
+          type="password" placeholder="비밀번호" value={pw}
+          onChange={e => setPw(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-          style={{ width: '100%', background: '#fafafa', border: `1px solid ${errors.pw ? '#EF4444' : '#e8e8e8'}`, padding: '12px 14px', color: '#111', fontSize: '13px', outline: 'none', boxSizing: 'border-box', borderRadius: '6px' }} />
+          style={inputStyle(errors.pw)}
+          onFocus={e => { if (!errors.pw) e.currentTarget.style.borderColor = '#4338CA' }}
+          onBlur={e => { if (!errors.pw) e.currentTarget.style.borderColor = '#E5E7EB' }}
+        />
         {errors.pw && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.pw}</div>}
       </div>
-      <button onClick={handleSubmit} disabled={isLoading}
-        style={{ width: '100%', background: isLoading ? '#aaa' : '#4338CA', border: 'none', padding: '14px', color: '#fff', fontSize: '14px', cursor: isLoading ? 'default' : 'pointer', marginTop: '8px', fontWeight: 500, borderRadius: '6px', transition: 'background 0.2s' }}>
+
+      <button
+        onClick={handleSubmit} disabled={isLoading}
+        style={{
+          width: '100%', background: isLoading ? '#A5B4FC' : '#4338CA',
+          border: 'none', padding: '13px', color: '#fff', fontSize: '14px',
+          cursor: isLoading ? 'default' : 'pointer', fontWeight: 700,
+          borderRadius: '10px', transition: 'background 0.2s',
+          boxShadow: isLoading ? 'none' : '0 2px 8px rgba(67,56,202,0.3)'
+        }}
+        onMouseEnter={e => { if (!isLoading) e.currentTarget.style.background = '#3730A3' }}
+        onMouseLeave={e => { if (!isLoading) e.currentTarget.style.background = '#4338CA' }}
+      >
         {isLoading ? '로그인 중...' : '로그인'}
       </button>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0' }}>
-        <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
-        <span style={{ fontSize: '12px', color: '#bbb' }}>소셜 로그인</span>
-        <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 0 16px' }}>
+        <div style={{ flex: 1, height: '1px', background: '#F3F4F6' }} />
+        <span style={{ fontSize: '12px', color: '#9CA3AF' }}>소셜 로그인</span>
+        <div style={{ flex: 1, height: '1px', background: '#F3F4F6' }} />
       </div>
+
       <div style={{ display: 'flex', gap: '8px' }}>
         <button
           onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/kakao`}
-          style={{ flex: 1, background: '#FEE500', border: 'none', padding: '12px 8px', color: '#3C1E1E', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
+          style={{
+            flex: 1, background: '#FEE500', border: 'none', padding: '12px 8px',
+            color: '#3C1E1E', fontSize: '13px', cursor: 'pointer', fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '7px', borderRadius: '10px', transition: 'all 0.15s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = '#FDD835'}
+          onMouseLeave={e => e.currentTarget.style.background = '#FEE500'}
+        >
           <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#3C1E1E', color: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>K</div>
           카카오 로그인
         </button>
         <button
           onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/naver`}
-          style={{ flex: 1, background: '#03C75A', border: 'none', padding: '12px 8px', color: '#fff', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
+          style={{
+            flex: 1, background: '#03C75A', border: 'none', padding: '12px 8px',
+            color: '#fff', fontSize: '13px', cursor: 'pointer', fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '7px', borderRadius: '10px', transition: 'all 0.15s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = '#02B350'}
+          onMouseLeave={e => e.currentTarget.style.background = '#03C75A'}
+        >
           <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#fff', color: '#03C75A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>N</div>
           네이버 로그인
         </button>
       </div>
-      <div style={{ marginTop: '18px', textAlign: 'center', fontSize: '13px', color: '#bbb' }}>
+
+      <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '13px', color: '#9CA3AF' }}>
         아직 회원이 아니신가요?{' '}
-        <span onClick={() => setTab('JOIN')} style={{ color: '#4338CA', cursor: 'pointer', fontWeight: 500 }}>회원가입 →</span>
+        <span onClick={() => setTab('JOIN')} style={{ color: '#4338CA', cursor: 'pointer', fontWeight: 600 }}>
+          회원가입 →
+        </span>
       </div>
     </div>
   )
@@ -268,28 +338,57 @@ function JoinForm({
     }
   }
 
-  const inputStyle = (key: string): React.CSSProperties => ({
-    width: '100%', background: '#fafafa',
-    border: `1px solid ${errors[key] ? '#EF4444' : key === 'email' && emailVerified ? '#059669' : '#e8e8e8'}`,
-    padding: '12px 14px', color: '#111', fontSize: '13px',
-    outline: 'none', boxSizing: 'border-box' as const, borderRadius: '6px'
+  const inputStyle = (key: string, isVerified?: boolean): React.CSSProperties => ({
+    width: '100%', background: '#F9FAFB',
+    border: `1px solid ${errors[key] ? '#EF4444' : isVerified ? '#059669' : '#E5E7EB'}`,
+    padding: '12px 16px', color: '#111827', fontSize: '14px',
+    outline: 'none', boxSizing: 'border-box' as const, borderRadius: '10px',
+    transition: 'border-color 0.15s'
   })
-
-  const btnInlineStyle: React.CSSProperties = {
-    background: isSending ? '#aaa' : '#4338CA', border: 'none', color: '#fff', fontSize: '12px',
-    padding: '0 14px', cursor: isSending ? 'default' : 'pointer', whiteSpace: 'nowrap',
-    fontWeight: 500, borderRadius: '6px', height: '42px'
-  }
 
   return (
     <div>
-      <div style={{ fontSize: '28px', fontWeight: 600, color: '#111827', letterSpacing: '-0.5px', marginBottom: '20px' }}>회원가입</div>
+      {/* ✅ 로고 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <div style={{
+          width: '28px', height: '28px', borderRadius: '8px',
+          background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 4px rgba(67,56,202,0.3)'
+        }}>
+          <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>D</span>
+        </div>
+        <span style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>
+          Dev<span style={{ color: '#4338CA' }}>Link</span>
+        </span>
+      </div>
+      <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', letterSpacing: '-0.5px', marginBottom: '6px' }}>
+        회원가입
+      </div>
+      <div style={{ fontSize: '13px', color: '#9CA3AF', marginBottom: '20px' }}>
+        DevLink와 함께 취업 준비를 시작해보세요 🚀
+      </div>
 
       {/* 이메일 */}
       <div style={{ marginBottom: '10px' }}>
         <div style={{ display: 'flex', gap: '6px' }}>
-          <input type="email" placeholder="이메일" value={form.email} onChange={e => handleChange('email', e.target.value)} style={{ ...inputStyle('email'), flex: 1 }} />
-          <button onClick={handleSendCode} disabled={isSending} style={btnInlineStyle}>
+          <input
+            type="email" placeholder="이메일" value={form.email}
+            onChange={e => handleChange('email', e.target.value)}
+            style={{ ...inputStyle('email', emailVerified), flex: 1 }}
+            onFocus={e => { if (!errors.email && !emailVerified) e.currentTarget.style.borderColor = '#4338CA' }}
+            onBlur={e => { if (!errors.email && !emailVerified) e.currentTarget.style.borderColor = '#E5E7EB' }}
+          />
+          <button
+            onClick={handleSendCode} disabled={isSending}
+            style={{
+              background: isSending ? '#A5B4FC' : '#4338CA', border: 'none',
+              color: '#fff', fontSize: '12px', padding: '0 14px',
+              cursor: isSending ? 'default' : 'pointer', whiteSpace: 'nowrap',
+              fontWeight: 600, borderRadius: '10px', height: '46px',
+              transition: 'all 0.15s'
+            }}
+          >
             {isSending ? '발송 중...' : '인증 발송'}
           </button>
         </div>
@@ -300,10 +399,31 @@ function JoinForm({
       {codeSent && (
         <div style={{ marginBottom: '10px' }}>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <input type="text" placeholder="인증번호 6자리" value={form.code} onChange={e => handleChange('code', e.target.value)} style={{ ...inputStyle('code'), flex: 1 }} />
-            <button onClick={handleVerifyCode} style={{ background: '#4338CA', border: 'none', color: '#fff', fontSize: '12px', padding: '0 14px', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 500, borderRadius: '6px', height: '42px' }}>확인</button>
-            {!emailVerified && <span style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{formatTimer()}</span>}
-            {emailVerified && <span style={{ fontSize: '12px', color: '#059669', whiteSpace: 'nowrap' }}>✓ 완료</span>}
+            <input
+              type="text" placeholder="인증번호 6자리" value={form.code}
+              onChange={e => handleChange('code', e.target.value)}
+              style={{ ...inputStyle('code'), flex: 1 }}
+            />
+            <button
+              onClick={handleVerifyCode}
+              style={{
+                background: '#4338CA', border: 'none', color: '#fff',
+                fontSize: '12px', padding: '0 14px', cursor: 'pointer',
+                whiteSpace: 'nowrap', fontWeight: 600, borderRadius: '10px', height: '46px'
+              }}
+            >
+              확인
+            </button>
+            {!emailVerified && (
+              <span style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                {formatTimer()}
+              </span>
+            )}
+            {emailVerified && (
+              <span style={{ fontSize: '12px', color: '#059669', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                ✓ 완료
+              </span>
+            )}
           </div>
           {errors.code && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.code}</div>}
         </div>
@@ -311,27 +431,49 @@ function JoinForm({
 
       {/* 비밀번호 */}
       <div style={{ marginBottom: '10px' }}>
-        <input type="password" placeholder="비밀번호 (8자 이상)" value={form.pw} onChange={e => handleChange('pw', e.target.value)} style={inputStyle('pw')} />
+        <input
+          type="password" placeholder="비밀번호 (8자 이상)" value={form.pw}
+          onChange={e => handleChange('pw', e.target.value)}
+          style={inputStyle('pw')}
+          onFocus={e => { if (!errors.pw) e.currentTarget.style.borderColor = '#4338CA' }}
+          onBlur={e => { if (!errors.pw) e.currentTarget.style.borderColor = '#E5E7EB' }}
+        />
         {errors.pw && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.pw}</div>}
       </div>
 
       {/* 비밀번호 확인 */}
       <div style={{ marginBottom: '10px' }}>
-        <input type="password" placeholder="비밀번호 확인" value={form.pwConfirm} onChange={e => handleChange('pwConfirm', e.target.value)} style={inputStyle('pwConfirm')} />
+        <input
+          type="password" placeholder="비밀번호 확인" value={form.pwConfirm}
+          onChange={e => handleChange('pwConfirm', e.target.value)}
+          style={inputStyle('pwConfirm')}
+          onFocus={e => { if (!errors.pwConfirm) e.currentTarget.style.borderColor = '#4338CA' }}
+          onBlur={e => { if (!errors.pwConfirm) e.currentTarget.style.borderColor = '#E5E7EB' }}
+        />
         {errors.pwConfirm && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.pwConfirm}</div>}
       </div>
 
       {/* 닉네임 */}
-      <div style={{ marginBottom: '10px' }}>
-        <input type="text" placeholder="닉네임 (2~10자)" value={form.nickname} onChange={e => handleChange('nickname', e.target.value)} style={inputStyle('nickname')} />
+      <div style={{ marginBottom: '12px' }}>
+        <input
+          type="text" placeholder="닉네임 (2~10자)" value={form.nickname}
+          onChange={e => handleChange('nickname', e.target.value)}
+          style={inputStyle('nickname')}
+          onFocus={e => { if (!errors.nickname) e.currentTarget.style.borderColor = '#4338CA' }}
+          onBlur={e => { if (!errors.nickname) e.currentTarget.style.borderColor = '#E5E7EB' }}
+        />
         {errors.nickname && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>✕ {errors.nickname}</div>}
       </div>
 
       {/* 약관 */}
-      <div style={{ border: '1px solid #eee', padding: '14px 16px', background: '#fafafa', margin: '14px 0 8px', borderRadius: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px', borderBottom: '1px solid #eee', marginBottom: '10px' }}>
-          <input type="checkbox" checked={agrees.all} onChange={() => handleAgree('all')} style={{ accentColor: '#4338CA', width: '14px', height: '14px', cursor: 'pointer' }} />
-          <label style={{ fontSize: '14px', color: '#111', cursor: 'pointer', fontWeight: 700 }}>전체 동의</label>
+      <div style={{
+        border: '1px solid #F3F4F6', padding: '14px 16px',
+        background: '#F9FAFB', margin: '4px 0 8px', borderRadius: '10px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px', borderBottom: '1px solid #E5E7EB', marginBottom: '10px' }}>
+          <input type="checkbox" checked={agrees.all} onChange={() => handleAgree('all')}
+            style={{ accentColor: '#4338CA', width: '14px', height: '14px', cursor: 'pointer' }} />
+          <label style={{ fontSize: '14px', color: '#111827', cursor: 'pointer', fontWeight: 700 }}>전체 동의</label>
         </div>
         {[
           { key: 'terms', label: '서비스 이용약관', required: true },
@@ -340,47 +482,86 @@ function JoinForm({
         ].map(item => (
           <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input type="checkbox" checked={agrees[item.key as keyof typeof agrees] as boolean} onChange={() => handleAgree(item.key)} style={{ accentColor: '#4338CA', width: '14px', height: '14px', cursor: 'pointer' }} />
-              <label style={{ fontSize: '13px', color: '#888', cursor: 'pointer' }}>
-                <span style={{ color: item.required ? '#4338CA' : '#bbb', fontWeight: 500 }}>[{item.required ? '필수' : '선택'}]</span> {item.label}
+              <input type="checkbox" checked={agrees[item.key as keyof typeof agrees] as boolean}
+                onChange={() => handleAgree(item.key)}
+                style={{ accentColor: '#4338CA', width: '14px', height: '14px', cursor: 'pointer' }} />
+              <label style={{ fontSize: '13px', color: '#6B7280', cursor: 'pointer' }}>
+                <span style={{ color: item.required ? '#4338CA' : '#9CA3AF', fontWeight: 600 }}>
+                  [{item.required ? '필수' : '선택'}]
+                </span>{' '}
+                {item.label}
               </label>
             </div>
-            <span onClick={() => setTermsModal(item.key as 'terms' | 'privacy' | 'marketing')}
-              style={{ fontSize: '12px', color: '#bbb', cursor: 'pointer', textDecoration: 'underline' }}>보기</span>
+            <span
+              onClick={() => setTermsModal(item.key as 'terms' | 'privacy' | 'marketing')}
+              style={{ fontSize: '12px', color: '#9CA3AF', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              보기
+            </span>
           </div>
         ))}
       </div>
-      {(errors.terms || errors.privacy) && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px' }}>✕ 필수 약관에 동의해주세요</div>}
+      {(errors.terms || errors.privacy) && (
+        <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '8px' }}>✕ 필수 약관에 동의해주세요</div>
+      )}
 
       {/* 소셜 간편가입 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '14px 0 10px' }}>
-        <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
-        <span style={{ fontSize: '12px', color: '#bbb' }}>소셜로 간편 가입</span>
-        <div style={{ flex: 1, height: '0.5px', background: '#eee' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0 10px' }}>
+        <div style={{ flex: 1, height: '1px', background: '#F3F4F6' }} />
+        <span style={{ fontSize: '12px', color: '#9CA3AF' }}>소셜로 간편 가입</span>
+        <div style={{ flex: 1, height: '1px', background: '#F3F4F6' }} />
       </div>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
         <button
           onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/kakao`}
-          style={{ flex: 1, background: '#FEE500', border: 'none', padding: '12px 8px', color: '#3C1E1E', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
+          style={{
+            flex: 1, background: '#FEE500', border: 'none', padding: '12px 8px',
+            color: '#3C1E1E', fontSize: '13px', cursor: 'pointer', fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '7px', borderRadius: '10px', transition: 'all 0.15s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = '#FDD835'}
+          onMouseLeave={e => e.currentTarget.style.background = '#FEE500'}
+        >
           <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#3C1E1E', color: '#FEE500', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>K</div>
           카카오로 가입
         </button>
         <button
           onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/naver`}
-          style={{ flex: 1, background: '#03C75A', border: 'none', padding: '12px 8px', color: '#fff', fontSize: '13px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '6px' }}>
+          style={{
+            flex: 1, background: '#03C75A', border: 'none', padding: '12px 8px',
+            color: '#fff', fontSize: '13px', cursor: 'pointer', fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '7px', borderRadius: '10px', transition: 'all 0.15s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = '#02B350'}
+          onMouseLeave={e => e.currentTarget.style.background = '#03C75A'}
+        >
           <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: '#fff', color: '#03C75A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>N</div>
           네이버로 가입
         </button>
       </div>
 
-      <button onClick={handleSubmit} disabled={isLoading}
-        style={{ width: '100%', background: isLoading ? '#aaa' : '#4338CA', border: 'none', padding: '14px', color: '#fff', fontSize: '14px', cursor: isLoading ? 'default' : 'pointer', fontWeight: 500, borderRadius: '6px', transition: 'background 0.2s' }}>
+      <button
+        onClick={handleSubmit} disabled={isLoading}
+        style={{
+          width: '100%', background: isLoading ? '#A5B4FC' : '#4338CA',
+          border: 'none', padding: '13px', color: '#fff', fontSize: '14px',
+          cursor: isLoading ? 'default' : 'pointer', fontWeight: 700,
+          borderRadius: '10px', transition: 'background 0.2s',
+          boxShadow: isLoading ? 'none' : '0 2px 8px rgba(67,56,202,0.3)'
+        }}
+        onMouseEnter={e => { if (!isLoading) e.currentTarget.style.background = '#3730A3' }}
+        onMouseLeave={e => { if (!isLoading) e.currentTarget.style.background = '#4338CA' }}
+      >
         {isLoading ? '가입 중...' : '회원가입'}
       </button>
 
-      <div style={{ marginTop: '18px', textAlign: 'center', fontSize: '13px', color: '#bbb' }}>
+      <div style={{ marginTop: '18px', textAlign: 'center', fontSize: '13px', color: '#9CA3AF' }}>
         이미 회원이신가요?{' '}
-        <span onClick={() => setTab('LOGIN')} style={{ color: '#4338CA', cursor: 'pointer', fontWeight: 500 }}>로그인 →</span>
+        <span onClick={() => setTab('LOGIN')} style={{ color: '#4338CA', cursor: 'pointer', fontWeight: 600 }}>
+          로그인 →
+        </span>
       </div>
     </div>
   )
@@ -426,7 +607,7 @@ function AuthModal() {
 
   if (activeModal === 'NONE') return null
 
-  // ── 약관 모달 ──────────────────────────────────────────────
+  // 약관 모달
   if (termsModal) {
     const content = TERMS_CONTENT[termsModal]
     return (
@@ -436,22 +617,27 @@ function AuthModal() {
       >
         <div
           onClick={e => e.stopPropagation()}
-          style={{ background: '#fff', width: '100%', maxWidth: '480px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', borderRadius: '12px', overflow: 'hidden' }}
+          style={{ background: '#fff', width: '100%', maxWidth: '480px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', borderRadius: '16px', overflow: 'hidden' }}
         >
-          <div style={{ height: '3px', background: '#4338CA' }} />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '0.5px solid #eee' }}>
-            <span style={{ fontSize: '16px', fontWeight: 500, color: '#444' }}>{content.title}</span>
-            <button onClick={() => setTermsModal(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+          <div style={{ height: '3px', background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #F3F4F6' }}>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>{content.title}</span>
+            <button onClick={() => setTermsModal(null)} style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '18px' }}>✕</button>
           </div>
           <div style={{ overflowY: 'auto', padding: '20px', flex: 1 }}>
-            <pre style={{ fontSize: '12px', lineHeight: 1.8, color: '#666', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>
+            <pre style={{ fontSize: '12px', lineHeight: 1.8, color: '#6B7280', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>
               {content.content}
             </pre>
           </div>
-          <div style={{ padding: '16px 20px', borderTop: '0.5px solid #eee' }}>
+          <div style={{ padding: '16px 20px', borderTop: '1px solid #F3F4F6' }}>
             <button
               onClick={() => setTermsModal(null)}
-              style={{ width: '100%', background: '#4338CA', border: 'none', padding: '12px', color: '#fff', fontSize: '13px', cursor: 'pointer', fontWeight: 500, borderRadius: '6px' }}>
+              style={{
+                width: '100%', background: '#4338CA', border: 'none',
+                padding: '12px', color: '#fff', fontSize: '13px',
+                cursor: 'pointer', fontWeight: 700, borderRadius: '10px'
+              }}
+            >
               확인
             </button>
           </div>
@@ -460,31 +646,61 @@ function AuthModal() {
     )
   }
 
-  // ── 모달 공통 레이아웃 ──────────────────────────────────────
+  // ✅ 모달 공통 레이아웃
   const modalContent = (
     <div style={{
       background: '#fff',
-      border: '1px solid #e0e0e0',
       width: '100%',
       maxWidth: isMobile ? '100%' : '420px',
       position: 'relative',
-      borderRadius: isMobile ? '16px 16px 0 0' : '12px',
-      overflow: 'hidden'
+      borderRadius: isMobile ? '20px 20px 0 0' : '16px',
+      overflow: 'hidden',
+      boxShadow: '0 20px 60px rgba(0,0,0,0.15)'
     }}>
-      <div style={{ height: '3px', background: '#4338CA' }} />
-      {isMobile && <div style={{ width: '36px', height: '4px', background: '#ddd', borderRadius: '2px', margin: '10px auto 0' }} />}
-      <div style={{ padding: isMobile ? '16px 20px 24px' : '32px 32px 28px' }}>
+      {/* ✅ 상단 그라데이션 바 */}
+      <div style={{ height: '4px', background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)' }} />
+
+      {isMobile && (
+        <div style={{ width: '36px', height: '4px', background: '#E5E7EB', borderRadius: '2px', margin: '12px auto 0' }} />
+      )}
+
+      <div style={{ padding: isMobile ? '16px 20px 28px' : '28px 32px 32px' }}>
         {!isMobile && (
-          <button onClick={closeModal} style={{ position: 'absolute', top: '14px', right: '16px', background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+          <button
+            onClick={closeModal}
+            style={{
+              position: 'absolute', top: '16px', right: '16px',
+              background: '#F3F4F6', border: 'none', color: '#6B7280',
+              cursor: 'pointer', fontSize: '14px', width: '28px', height: '28px',
+              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#E5E7EB'}
+            onMouseLeave={e => e.currentTarget.style.background = '#F3F4F6'}
+          >
+            ✕
+          </button>
         )}
-        <div style={{ display: 'flex', borderBottom: '1px solid #eee', marginBottom: '24px' }}>
+
+        {/* ✅ 탭 */}
+        <div style={{ display: 'flex', background: '#F3F4F6', borderRadius: '10px', padding: '3px', gap: '2px', marginBottom: '24px' }}>
           {(['LOGIN', 'JOIN'] as const).map(t => (
-            <div key={t} onClick={() => setTab(t)}
-              style={{ flex: 1, padding: '10px 0', textAlign: 'center', fontSize: '13px', fontWeight: 500, letterSpacing: '1px', cursor: 'pointer', color: tab === t ? '#4338CA' : '#bbb', borderBottom: tab === t ? '2px solid #4338CA' : '2px solid transparent', transition: '0.2s' }}>
+            <div
+              key={t} onClick={() => setTab(t)}
+              style={{
+                flex: 1, padding: '8px 0', textAlign: 'center', fontSize: '13px',
+                fontWeight: tab === t ? 700 : 500, cursor: 'pointer',
+                color: tab === t ? '#4338CA' : '#6B7280',
+                background: tab === t ? '#fff' : 'transparent',
+                borderRadius: '8px', transition: 'all 0.2s',
+                boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+              }}
+            >
               {t === 'LOGIN' ? '로그인' : '회원가입'}
             </div>
           ))}
         </div>
+
         {tab === 'LOGIN'
           ? <LoginForm setTab={setTab} />
           : <JoinForm setTab={setTab} setTermsModal={setTermsModal} />
@@ -495,14 +711,20 @@ function AuthModal() {
 
   if (!isMobile) {
     return (
-      <div onClick={closeModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div
+        onClick={closeModal}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backdropFilter: 'blur(2px)' }}
+      >
         <div onClick={e => e.stopPropagation()}>{modalContent}</div>
       </div>
     )
   }
 
   return (
-    <div onClick={closeModal} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9999, display: 'flex', alignItems: 'flex-end' }}>
+    <div
+      onClick={closeModal}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', backdropFilter: 'blur(2px)' }}
+    >
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
         {modalContent}
       </div>

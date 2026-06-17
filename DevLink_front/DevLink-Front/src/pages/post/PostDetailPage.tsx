@@ -23,11 +23,25 @@ interface Comment {
   createdAt: string
 }
 
-const categoryLabels: Record<string, string> = {
-  FREE: '자유',
-  INTERVIEW: '면접후기',
-  TECH: '기술질문',
-  JOB: '취업정보',
+const categoryColors: Record<string, { bg: string; color: string; label: string }> = {
+  FREE:      { bg: '#EEF2FF', color: '#4338CA', label: '자유' },
+  INTERVIEW: { bg: '#FDF2F8', color: '#9D174D', label: '면접후기' },
+  TECH:      { bg: '#F0FDF4', color: '#166534', label: '기술질문' },
+  JOB:       { bg: '#FFFBEB', color: '#92400E', label: '취업정보' },
+}
+
+const avatarColors = [
+  { bg: '#EEF2FF', color: '#4338CA' },
+  { bg: '#FDF2F8', color: '#9D174D' },
+  { bg: '#F0FDF4', color: '#166534' },
+  { bg: '#FFFBEB', color: '#92400E' },
+  { bg: '#F0F9FF', color: '#0369A1' },
+  { bg: '#FFF7ED', color: '#C2410C' },
+]
+
+function getAvatarColor(nickname: string) {
+  const index = (nickname?.charCodeAt(0) || 0) % avatarColors.length
+  return avatarColors[index]
 }
 
 function PostDetailPage() {
@@ -120,168 +134,292 @@ function PostDetailPage() {
   }
 
   if (loading) return (
-    <div style={{ textAlign: 'center', padding: '80px', color: '#9CA3AF' }}>로딩 중...</div>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
+      <div style={{ width: '80px', height: '16px', background: '#F3F4F6', borderRadius: '4px', marginBottom: '20px' }} />
+      <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #F3F4F6', padding: '28px' }}>
+        <div style={{ width: '60px', height: '20px', background: '#F3F4F6', borderRadius: '20px', marginBottom: '12px' }} />
+        <div style={{ width: '60%', height: '28px', background: '#F3F4F6', borderRadius: '4px', marginBottom: '20px' }} />
+        <div style={{ width: '100%', height: '1px', background: '#F3F4F6', marginBottom: '20px' }} />
+        <div style={{ width: '100%', height: '14px', background: '#F9FAFB', borderRadius: '4px', marginBottom: '8px' }} />
+        <div style={{ width: '90%', height: '14px', background: '#F9FAFB', borderRadius: '4px', marginBottom: '8px' }} />
+        <div style={{ width: '80%', height: '14px', background: '#F9FAFB', borderRadius: '4px' }} />
+      </div>
+    </div>
   )
 
   if (!post) return (
-    <div style={{ textAlign: 'center', padding: '80px', color: '#9CA3AF' }}>게시글을 찾을 수 없습니다.</div>
+    <div style={{ textAlign: 'center', padding: '80px' }}>
+      <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
+      <div style={{ fontSize: '16px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>게시글을 찾을 수 없어요</div>
+      <div style={{ fontSize: '13px', color: '#9CA3AF', marginBottom: '20px' }}>삭제되었거나 존재하지 않는 게시글이에요</div>
+      <button
+        onClick={() => navigate('/posts')}
+        style={{ padding: '8px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, color: '#fff', background: '#4338CA', border: 'none', cursor: 'pointer' }}
+      >
+        목록으로
+      </button>
+    </div>
   )
+
+  const cat = categoryColors[post.category] || categoryColors['FREE']
+  const avatar = getAvatarColor(post.nickname)
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
 
-      {/* 뒤로가기 */}
-      <button
-        onClick={() => navigate('/posts')}
-        style={{ marginBottom: '20px', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '14px' }}
-      >
-        ← 목록으로
-      </button>
+      {/* ✅ 뒤로가기 - 단독 줄로 분리 */}
+      <div style={{ marginBottom: '20px' }}>
+        <button
+          onClick={() => navigate('/posts')}
+          style={{
+            background: 'none', border: 'none', color: '#6B7280',
+            cursor: 'pointer', fontSize: '13px', padding: '6px 10px',
+            borderRadius: '6px', transition: 'all 0.15s', display: 'block'
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = '#F3F4F6'
+            e.currentTarget.style.color = '#374151'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'none'
+            e.currentTarget.style.color = '#6B7280'
+          }}
+        >
+          ← 목록으로
+        </button>
+      </div>
 
       {/* 게시글 본문 */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid rgba(0,0,0,0.1)', padding: '28px' }}>
-
-        {/* 카테고리 + 제목 */}
-        <div style={{ marginBottom: '16px' }}>
+      <div style={{
+        background: '#fff', borderRadius: '16px',
+        border: '1px solid #F3F4F6', padding: '32px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+      }}>
+        <div style={{ marginBottom: '12px' }}>
           <span style={{
-            padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
-            background: '#EEF2FF', color: '#4338CA', marginBottom: '8px', display: 'inline-block'
+            padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
+            background: cat.bg, color: cat.color, display: 'inline-block'
           }}>
-            {categoryLabels[post.category] || post.category}
+            {cat.label}
           </span>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginTop: '8px' }}>{post.title}</h1>
         </div>
 
-        {/* 작성자 정보 */}
+        <h1 style={{
+          fontSize: '24px', fontWeight: 700, color: '#111827',
+          marginBottom: '20px', lineHeight: '1.4', letterSpacing: '-0.3px'
+        }}>
+          {post.title}
+        </h1>
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              width: '28px', height: '28px', borderRadius: '50%',
-              background: '#EEF2FF', color: '#4338CA',
-              fontSize: '12px', fontWeight: 600,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: avatar.bg, color: avatar.color,
+              fontSize: '13px', fontWeight: 700,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
             }}>
               {post.nickname?.charAt(0)}
             </div>
-            <span style={{ fontSize: '14px', color: '#374151', fontWeight: 500 }}>{post.nickname}</span>
-            <span style={{ fontSize: '13px', color: '#9CA3AF' }}>{formatDate(post.createdAt)}</span>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#111827' }}>{post.nickname}</div>
+              <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{formatDate(post.createdAt)}</div>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#9CA3AF' }}>
-            <span>조회 {post.viewCount}</span>
-            <span>좋아요 {post.likeCount}</span>
-            <span>댓글 {post.commentCount}</span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#9CA3AF' }}>
+              <span>👁 {post.viewCount}</span>
+              <span>🔥 {post.likeCount}</span>
+              <span>💬 {post.commentCount}</span>
+            </div>
+            {isLoggedIn && post.nickname === nickname && (
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  onClick={() => navigate(`/posts/${postId}/edit`)}
+                  style={{
+                    padding: '5px 12px', borderRadius: '6px', fontSize: '12px',
+                    background: '#F9FAFB', color: '#374151',
+                    border: '1px solid #E5E7EB', cursor: 'pointer', transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F3F4F6'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#F9FAFB'}
+                >
+                  수정
+                </button>
+                <button
+                  onClick={handlePostDelete}
+                  style={{
+                    padding: '5px 12px', borderRadius: '6px', fontSize: '12px',
+                    background: '#FEF2F2', color: '#DC2626',
+                    border: '1px solid #FECACA', cursor: 'pointer', transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
+                >
+                  삭제
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        <hr style={{ border: 'none', borderTop: '1px solid #F3F4F6', marginBottom: '20px' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid #F3F4F6', marginBottom: '28px' }} />
 
-        {/* 내용 */}
-        <div style={{ fontSize: '15px', color: '#374151', lineHeight: '1.8', whiteSpace: 'pre-wrap', marginBottom: '24px' }}>
+        <div style={{
+          fontSize: '15px', color: '#374151',
+          lineHeight: '1.9', whiteSpace: 'pre-wrap', marginBottom: '32px'
+        }}>
           {post.content}
         </div>
 
-        {/* 좋아요 버튼 */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           <button
             onClick={handleLike}
             style={{
-              padding: '8px 24px', borderRadius: '20px', fontSize: '14px', cursor: 'pointer',
+              padding: '10px 32px', borderRadius: '24px', fontSize: '14px',
+              cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
               background: liked ? '#4338CA' : '#fff',
               color: liked ? '#fff' : '#4338CA',
-              border: '1px solid #4338CA', fontWeight: 500
+              border: `2px solid ${liked ? '#4338CA' : '#C7D2FE'}`,
+              boxShadow: liked ? '0 4px 12px rgba(67,56,202,0.3)' : 'none',
+              transform: liked ? 'scale(1.03)' : 'scale(1)'
+            }}
+            onMouseEnter={e => {
+              if (!liked) {
+                e.currentTarget.style.background = '#EEF2FF'
+                e.currentTarget.style.borderColor = '#4338CA'
+              }
+            }}
+            onMouseLeave={e => {
+              if (!liked) {
+                e.currentTarget.style.background = '#fff'
+                e.currentTarget.style.borderColor = '#C7D2FE'
+              }
             }}
           >
-            👍 좋아요 {post.likeCount}
+            🔥 좋아요 {post.likeCount}
           </button>
         </div>
-
-        {/* 수정/삭제 버튼 (본인 게시글만) */}
-        {isLoggedIn && post.nickname === nickname && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button
-              onClick={() => navigate(`/posts/${postId}/edit`)}
-              style={{
-                padding: '6px 14px', borderRadius: '6px', fontSize: '13px',
-                background: '#F3F4F6', color: '#374151', border: 'none', cursor: 'pointer'
-              }}
-            >
-              수정
-            </button>
-            <button
-              onClick={handlePostDelete}
-              style={{
-                padding: '6px 14px', borderRadius: '6px', fontSize: '13px',
-                background: '#FEE2E2', color: '#DC2626', border: 'none', cursor: 'pointer'
-              }}
-            >
-              삭제
-            </button>
-          </div>
-        )}
       </div>
 
       {/* 댓글 섹션 */}
-      <div style={{ marginTop: '24px', background: '#fff', borderRadius: '12px', border: '0.5px solid rgba(0,0,0,0.1)', padding: '24px' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#111827', marginBottom: '16px' }}>
-          댓글 {post.commentCount}개
+      <div style={{
+        marginTop: '16px', background: '#fff', borderRadius: '16px',
+        border: '1px solid #F3F4F6', padding: '28px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+      }}>
+        <h3 style={{
+          fontSize: '15px', fontWeight: 700, color: '#111827',
+          marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '6px'
+        }}>
+          💬 댓글 <span style={{ color: '#4338CA' }}>{post.commentCount}</span>
         </h3>
 
-        {/* 댓글 입력 */}
-        {isLoggedIn && (
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        {isLoggedIn ? (
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
             <input
               value={commentInput}
               onChange={e => setCommentInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleCommentSubmit()}
               placeholder="댓글을 입력하세요..."
               style={{
-                flex: 1, padding: '10px 14px', borderRadius: '8px',
-                border: '1px solid #E5E7EB', fontSize: '14px', outline: 'none'
+                flex: 1, padding: '11px 16px', borderRadius: '10px',
+                border: '1px solid #E5E7EB', fontSize: '14px', outline: 'none',
+                transition: 'border-color 0.15s'
               }}
+              onFocus={e => e.currentTarget.style.borderColor = '#4338CA'}
+              onBlur={e => e.currentTarget.style.borderColor = '#E5E7EB'}
             />
             <button
               onClick={handleCommentSubmit}
               style={{
-                padding: '10px 18px', borderRadius: '8px', fontSize: '14px',
-                background: '#4338CA', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 500
+                padding: '11px 20px', borderRadius: '10px', fontSize: '14px',
+                background: '#4338CA', color: '#fff', border: 'none',
+                cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s',
+                boxShadow: '0 1px 3px rgba(67,56,202,0.3)'
               }}
+              onMouseEnter={e => e.currentTarget.style.background = '#3730A3'}
+              onMouseLeave={e => e.currentTarget.style.background = '#4338CA'}
             >
               등록
             </button>
           </div>
+        ) : (
+          <div
+            style={{
+              padding: '14px 16px', borderRadius: '10px', background: '#F9FAFB',
+              border: '1px solid #F3F4F6', fontSize: '13px', color: '#9CA3AF',
+              textAlign: 'center', marginBottom: '24px', cursor: 'pointer'
+            }}
+            onClick={() => alert('로그인이 필요합니다.')}
+          >
+            로그인 후 댓글을 남길 수 있어요
+          </div>
         )}
 
-        {/* 댓글 목록 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {comments.length > 0 ? comments.map(comment => (
-            <div key={comment.commentId} style={{
-              padding: '12px 16px', borderRadius: '8px', background: '#F9FAFB',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'
-            }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
-                    {comment.nickname || '알 수 없음'}
-                  </span>
-                  <span style={{ fontSize: '12px', color: '#9CA3AF' }}>{formatDate(comment.createdAt)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {comments.length > 0 ? comments.map(comment => {
+            const commentAvatar = getAvatarColor(comment.nickname || '')
+            return (
+              <div key={comment.commentId} style={{
+                padding: '14px 16px', borderRadius: '10px',
+                background: '#F9FAFB', border: '1px solid #F3F4F6',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                transition: 'border-color 0.15s'
+              }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#E5E7EB'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#F3F4F6'}
+              >
+                <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
+                  <div style={{
+                    width: '28px', height: '28px', borderRadius: '50%',
+                    background: commentAvatar.bg, color: commentAvatar.color,
+                    fontSize: '11px', fontWeight: 700, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {(comment.nickname || '?').charAt(0)}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>
+                        {comment.nickname || '알 수 없음'}
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#9CA3AF' }}>
+                        {formatDate(comment.createdAt)}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#374151', lineHeight: '1.6' }}>
+                      {comment.content}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize: '14px', color: '#4B5563' }}>{comment.content}</div>
+                {isLoggedIn && comment.userId === userId && (
+                  <button
+                    onClick={() => handleCommentDelete(comment.commentId)}
+                    style={{
+                      background: 'none', border: 'none', color: '#D1D5DB',
+                      fontSize: '12px', cursor: 'pointer', marginLeft: '12px',
+                      padding: '4px 8px', borderRadius: '4px', transition: 'all 0.15s', flexShrink: 0
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.color = '#DC2626'
+                      e.currentTarget.style.background = '#FEF2F2'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.color = '#D1D5DB'
+                      e.currentTarget.style.background = 'none'
+                    }}
+                  >
+                    삭제
+                  </button>
+                )}
               </div>
-              {isLoggedIn && comment.userId === userId && (
-                <button
-                  onClick={() => handleCommentDelete(comment.commentId)}
-                  style={{
-                    background: 'none', border: 'none', color: '#9CA3AF',
-                    fontSize: '12px', cursor: 'pointer', marginLeft: '8px'
-                  }}
-                >
-                  삭제
-                </button>
-              )}
-            </div>
-          )) : (
-            <div style={{ textAlign: 'center', padding: '24px', color: '#9CA3AF', fontSize: '14px' }}>
-              첫 댓글을 남겨보세요!
+            )
+          }) : (
+            <div style={{ textAlign: 'center', padding: '32px', color: '#9CA3AF' }}>
+              <div style={{ fontSize: '28px', marginBottom: '8px' }}>💬</div>
+              <div style={{ fontSize: '14px' }}>첫 댓글을 남겨보세요!</div>
             </div>
           )}
         </div>

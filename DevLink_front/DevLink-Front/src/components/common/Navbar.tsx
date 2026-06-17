@@ -3,7 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useNotificationStore } from '../../store/notificationStore'
 import { useToastStore } from '../../store/toastStore'
-import { Bell, Shield, User } from 'lucide-react'
+import { Bell, Shield, User, ChevronDown } from 'lucide-react'
+
+const navItems = [
+  { label: '게시판', path: '/posts' },
+  { label: '스터디', path: '/studies' },
+  { label: '채팅', path: '/chat' },
+  { label: '공지사항', path: '/notices' },
+]
 
 function Navbar() {
   const navigate = useNavigate()
@@ -49,92 +56,233 @@ function Navbar() {
 
   return (
     <>
-      <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: '#ffffff', borderBottom: '0.5px solid rgba(0,0,0,0.14)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 100,
+        background: '#ffffff',
+        borderBottom: '1px solid #F3F4F6',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+      }}>
+        <div style={{
+          maxWidth: '1600px', margin: '0 auto', padding: '0 60px',
+          height: '60px', display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          alignItems: 'center'
+        }}>
 
-          {/* 로고 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+          {/* ✅ 왼쪽: 로고 */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <div
               onClick={() => navigate('/')}
-              style={{ fontSize: '18px', fontWeight: 600, color: '#4338CA', letterSpacing: '-0.4px', cursor: 'pointer', flexShrink: 0 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                cursor: 'pointer', textDecoration: 'none'
+              }}
             >
-              Dev<span style={{ color: '#111827' }}>Link</span>
+              {/* ✅ 로고 아이콘 뱃지 */}
+              <div style={{
+                width: '28px', height: '28px', borderRadius: '8px',
+                background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 4px rgba(67,56,202,0.3)'
+              }}>
+                <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>D</span>
+              </div>
+              {/* ✅ 로고 텍스트 통일 */}
+              <span style={{
+                fontSize: '17px', fontWeight: 700,
+                color: '#111827', letterSpacing: '-0.5px'
+              }}>
+                Dev<span style={{ color: '#4338CA' }}>Link</span>
+              </span>
             </div>
+          </div>
 
-            {/* 데스크탑 네비 메뉴 */}
-            <div className="hidden md:flex" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {[
-                { label: '게시판', path: '/posts' },
-                { label: '스터디', path: '/studies' },
-                { label: '채팅', path: '/chat' },
-              ].map(item => (
+          {/* ✅ 중앙: 네비 메뉴 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+            {navItems.map(item => {
+              const isActive = location.pathname.startsWith(item.path)
+              return (
                 <span
                   key={item.path}
                   onClick={() => navigate(item.path)}
                   style={{
-                    padding: '6px 12px', borderRadius: '6px', fontSize: '14px', fontWeight: 500,
-                    cursor: 'pointer', color: location.pathname.startsWith(item.path) ? '#4338CA' : '#6B7280',
-                    background: location.pathname.startsWith(item.path) ? '#EEF2FF' : 'transparent',
-                    transition: 'all 0.15s'
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: isActive ? 600 : 500,
+                    cursor: 'pointer',
+                    color: isActive ? '#4338CA' : '#6B7280',
+                    position: 'relative',
+                    transition: 'all 0.15s',
+                    borderRadius: '8px',
                   }}
-                  onMouseEnter={e => { if (!location.pathname.startsWith(item.path)) { e.currentTarget.style.background = '#EEF2FF'; e.currentTarget.style.color = '#4338CA' } }}
-                  onMouseLeave={e => { if (!location.pathname.startsWith(item.path)) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6B7280' } }}
+                  onMouseEnter={e => {
+                    if (!isActive) {
+                      e.currentTarget.style.color = '#4338CA'
+                      e.currentTarget.style.background = '#F5F3FF'
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!isActive) {
+                      e.currentTarget.style.color = '#6B7280'
+                      e.currentTarget.style.background = 'transparent'
+                    }
+                  }}
                 >
                   {item.label}
+                  {/* ✅ 활성 메뉴 하단 인디고 언더라인 */}
+                  {isActive && (
+                    <div style={{
+                      position: 'absolute', bottom: '-1px', left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: '20px', height: '2px',
+                      background: '#4338CA', borderRadius: '2px'
+                    }} />
+                  )}
                 </span>
-              ))}
-            </div>
+              )
+            })}
           </div>
 
-          {/* 데스크탑 우측 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* ✅ 오른쪽: 버튼들 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
             {isLoggedIn ? (
               <>
                 {/* 관리자 버튼 */}
                 {isAdmin && (
                   <button
                     onClick={() => navigate('/admin')}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', color: '#6B7280', display: 'flex', alignItems: 'center' }}
+                    style={{
+                      width: '36px', height: '36px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      borderRadius: '8px', background: 'transparent',
+                      border: '1px solid #F3F4F6', cursor: 'pointer', color: '#6B7280',
+                      transition: 'all 0.15s'
+                    }}
                     title="관리자"
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#F5F3FF'
+                      e.currentTarget.style.color = '#4338CA'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = '#6B7280'
+                    }}
                   >
-                    <Shield size={18} strokeWidth={1.5} />
+                    <Shield size={17} strokeWidth={1.5} />
                   </button>
                 )}
 
-                {/* 알림 버튼 */}
+                {/* ✅ 알림 버튼 */}
                 <div ref={notiRef} style={{ position: 'relative' }}>
                   <button
                     onClick={() => setNotiOpen(prev => !prev)}
-                    style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', background: 'transparent', border: '0.5px solid rgba(0,0,0,0.14)', cursor: 'pointer', color: '#6B7280', position: 'relative' }}
+                    style={{
+                      width: '36px', height: '36px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      borderRadius: '8px', background: 'transparent',
+                      border: '1px solid #F3F4F6', cursor: 'pointer',
+                      color: notiOpen ? '#4338CA' : '#6B7280',
+                      position: 'relative', transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#F5F3FF'
+                      e.currentTarget.style.color = '#4338CA'
+                      e.currentTarget.style.borderColor = '#C7D2FE'
+                    }}
+                    onMouseLeave={e => {
+                      if (!notiOpen) {
+                        e.currentTarget.style.background = 'transparent'
+                        e.currentTarget.style.color = '#6B7280'
+                        e.currentTarget.style.borderColor = '#F3F4F6'
+                      }
+                    }}
                   >
-                    <Bell size={18} strokeWidth={1.5} />
+                    <Bell size={17} strokeWidth={1.5} />
                     {unreadCount > 0 && (
-                      <span style={{ position: 'absolute', top: '6px', right: '6px', width: '7px', height: '7px', background: '#EF4444', borderRadius: '50%', border: '1.5px solid #fff' }} />
+                      <span style={{
+                        position: 'absolute', top: '7px', right: '7px',
+                        width: '7px', height: '7px',
+                        background: '#EF4444', borderRadius: '50%',
+                        border: '1.5px solid #fff'
+                      }} />
                     )}
                   </button>
                   {notiOpen && (
-                    <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: '320px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.14)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200 }}>
-                      <div style={{ padding: '16px', fontSize: '13px', color: '#6B7280', textAlign: 'center' }}>알림이 없습니다</div>
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                      width: '320px', background: '#fff',
+                      border: '1px solid #F3F4F6', borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200
+                    }}>
+                      <div style={{ padding: '14px 16px', borderBottom: '1px solid #F3F4F6', fontSize: '13px', fontWeight: 600, color: '#111827' }}>
+                        알림
+                      </div>
+                      <div style={{ padding: '24px 16px', fontSize: '13px', color: '#9CA3AF', textAlign: 'center' }}>
+                        <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔔</div>
+                        새로운 알림이 없어요
+                      </div>
+                      <div
+                        onClick={() => { navigate('/notifications'); setNotiOpen(false) }}
+                        style={{
+                          padding: '12px 16px', borderTop: '1px solid #F3F4F6',
+                          fontSize: '12px', color: '#4338CA', textAlign: 'center',
+                          cursor: 'pointer', fontWeight: 500
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#F5F3FF'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        알림 전체보기
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* 프로필 드롭다운 */}
+                {/* ✅ 프로필 드롭다운 */}
                 <div ref={dropdownRef} style={{ position: 'relative' }}>
                   <button
                     onClick={() => setDropdownOpen(prev => !prev)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: '0.5px solid rgba(0,0,0,0.14)', borderRadius: '20px', padding: '4px 10px 4px 4px', cursor: 'pointer' }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      background: dropdownOpen ? '#F5F3FF' : 'transparent',
+                      border: `1px solid ${dropdownOpen ? '#C7D2FE' : '#F3F4F6'}`,
+                      borderRadius: '20px', padding: '4px 10px 4px 4px',
+                      cursor: 'pointer', transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#F5F3FF'
+                      e.currentTarget.style.borderColor = '#C7D2FE'
+                    }}
+                    onMouseLeave={e => {
+                      if (!dropdownOpen) {
+                        e.currentTarget.style.background = 'transparent'
+                        e.currentTarget.style.borderColor = '#F3F4F6'
+                      }
+                    }}
                   >
-                    <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#EEF2FF', color: '#4338CA', fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{
+                      width: '26px', height: '26px', borderRadius: '50%',
+                      background: '#EEF2FF', color: '#4338CA',
+                      fontSize: '11px', fontWeight: 700,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
                       {nickname?.charAt(0) || <User size={12} />}
                     </div>
-                    <span style={{ fontSize: '13px', color: '#111827' }}>{nickname}</span>
+                    <span style={{ fontSize: '13px', color: '#111827', fontWeight: 500 }}>{nickname}</span>
+                    <ChevronDown size={13} strokeWidth={2} color="#9CA3AF"
+                      style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                    />
                   </button>
 
                   {dropdownOpen && (
-                    <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: '200px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.14)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200, overflow: 'hidden' }}>
-                      <div style={{ padding: '14px 16px 10px', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                      width: '200px', background: '#fff',
+                      border: '1px solid #F3F4F6', borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200, overflow: 'hidden'
+                    }}>
+                      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #F3F4F6' }}>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>{nickname}</div>
+                        <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>일반 회원</div>
                       </div>
                       <div>
                         {[
@@ -145,17 +293,23 @@ function Navbar() {
                           <div
                             key={item.path}
                             onClick={() => { navigate(item.path); setDropdownOpen(false) }}
-                            style={{ padding: '10px 16px', fontSize: '13px', color: '#111827', cursor: 'pointer', transition: 'background 0.1s' }}
-                            onMouseEnter={e => e.currentTarget.style.background = '#F3F4F6'}
+                            style={{
+                              padding: '10px 16px', fontSize: '13px',
+                              color: '#111827', cursor: 'pointer', transition: 'background 0.1s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                           >
                             {item.label}
                           </div>
                         ))}
-                        <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.08)' }}>
+                        <div style={{ borderTop: '1px solid #F3F4F6' }}>
                           <div
                             onClick={handleLogout}
-                            style={{ padding: '10px 16px', fontSize: '13px', color: '#EF4444', cursor: 'pointer', transition: 'background 0.1s' }}
+                            style={{
+                              padding: '10px 16px', fontSize: '13px',
+                              color: '#EF4444', cursor: 'pointer', transition: 'background 0.1s'
+                            }}
                             onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                           >
@@ -171,13 +325,34 @@ function Navbar() {
               <>
                 <button
                   onClick={() => setActiveModal('LOGIN')}
-                  style={{ fontSize: '13px', fontWeight: 500, color: '#6B7280', border: '0.5px solid rgba(0,0,0,0.14)', borderRadius: '8px', padding: '7px 16px', background: 'transparent', cursor: 'pointer' }}
+                  style={{
+                    fontSize: '13px', fontWeight: 500, color: '#6B7280',
+                    border: '1px solid #E5E7EB', borderRadius: '8px',
+                    padding: '7px 16px', background: 'transparent', cursor: 'pointer',
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = '#C7D2FE'
+                    e.currentTarget.style.color = '#4338CA'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = '#E5E7EB'
+                    e.currentTarget.style.color = '#6B7280'
+                  }}
                 >
                   로그인
                 </button>
                 <button
                   onClick={() => setActiveModal('JOIN')}
-                  style={{ fontSize: '13px', fontWeight: 500, color: '#fff', background: '#4338CA', border: 'none', borderRadius: '8px', padding: '7px 16px', cursor: 'pointer' }}
+                  style={{
+                    fontSize: '13px', fontWeight: 600, color: '#fff',
+                    background: '#4338CA', border: 'none',
+                    borderRadius: '8px', padding: '7px 16px', cursor: 'pointer',
+                    boxShadow: '0 1px 3px rgba(67,56,202,0.3)',
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#3730A3'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#4338CA'}
                 >
                   회원가입
                 </button>
@@ -186,7 +361,6 @@ function Navbar() {
 
             {/* 모바일 햄버거 버튼 */}
             <button
-              className="flex md:hidden"
               onClick={() => setMobileMenuOpen(prev => !prev)}
               style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'none' }}
             >
@@ -199,28 +373,52 @@ function Navbar() {
       {/* 모바일 딤 오버레이 */}
       <div
         onClick={() => setMobileMenuOpen(false)}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 110, opacity: mobileMenuOpen ? 1 : 0, pointerEvents: mobileMenuOpen ? 'auto' : 'none', transition: 'opacity 0.3s' }}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+          zIndex: 110, opacity: mobileMenuOpen ? 1 : 0,
+          pointerEvents: mobileMenuOpen ? 'auto' : 'none', transition: 'opacity 0.3s'
+        }}
       />
 
       {/* 모바일 사이드바 */}
-      <div
-        style={{ position: 'fixed', top: 0, right: 0, height: '100%', width: 'min(75vw, 280px)', background: '#fff', zIndex: 120, transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)', boxShadow: mobileMenuOpen ? '-4px 0 24px rgba(0,0,0,0.12)' : 'none', display: 'flex', flexDirection: 'column' }}
-      >
-        <div style={{ height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
-          <span style={{ fontSize: '16px', fontWeight: 600, color: '#4338CA' }}>Dev<span style={{ color: '#111827' }}>Link</span></span>
+      <div style={{
+        position: 'fixed', top: 0, right: 0, height: '100%',
+        width: 'min(75vw, 280px)', background: '#fff', zIndex: 120,
+        transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
+        boxShadow: mobileMenuOpen ? '-4px 0 24px rgba(0,0,0,0.12)' : 'none',
+        display: 'flex', flexDirection: 'column'
+      }}>
+        <div style={{
+          height: '60px', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', padding: '0 24px',
+          borderBottom: '1px solid #F3F4F6'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '24px', height: '24px', borderRadius: '6px',
+              background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <span style={{ color: '#fff', fontSize: '12px', fontWeight: 800 }}>D</span>
+            </div>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>
+              Dev<span style={{ color: '#4338CA' }}>Link</span>
+            </span>
+          </div>
           <button onClick={() => setMobileMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#111' }}>✕</button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {[
-            { label: '게시판', path: '/posts' },
-            { label: '스터디', path: '/studies' },
-            { label: '채팅', path: '/chat' },
-          ].map(item => (
+          {navItems.map(item => (
             <div
               key={item.path}
               onClick={() => navigate(item.path)}
-              style={{ padding: '16px 24px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', cursor: 'pointer', fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}
+              style={{
+                padding: '16px 24px', borderBottom: '1px solid #F9FAFB',
+                cursor: 'pointer', fontSize: '14px', color: '#111827',
+                display: 'flex', justifyContent: 'space-between'
+              }}
             >
               {item.label} <span style={{ color: '#ccc', fontSize: '10px' }}>→</span>
             </div>
@@ -228,14 +426,23 @@ function Navbar() {
 
           {isLoggedIn ? (
             <>
-              <div onClick={() => navigate('/mypage')} style={{ padding: '16px 24px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', cursor: 'pointer', fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}>
+              <div
+                onClick={() => navigate('/mypage')}
+                style={{ padding: '16px 24px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}
+              >
                 마이페이지 <span style={{ color: '#ccc', fontSize: '10px' }}>→</span>
               </div>
-              <div onClick={() => navigate('/notifications')} style={{ padding: '16px 24px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', cursor: 'pointer', fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}>
+              <div
+                onClick={() => navigate('/notifications')}
+                style={{ padding: '16px 24px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}
+              >
                 알림 {unreadCount > 0 && <span style={{ background: '#EF4444', color: '#fff', borderRadius: '10px', fontSize: '11px', padding: '0 6px' }}>{unreadCount}</span>}
               </div>
               {isAdmin && (
-                <div onClick={() => navigate('/admin')} style={{ padding: '16px 24px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', cursor: 'pointer', fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}>
+                <div
+                  onClick={() => navigate('/admin')}
+                  style={{ padding: '16px 24px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}
+                >
                   관리자 <span style={{ color: '#ccc', fontSize: '10px' }}>→</span>
                 </div>
               )}
@@ -245,10 +452,16 @@ function Navbar() {
             </>
           ) : (
             <>
-              <div onClick={() => { setActiveModal('LOGIN'); setMobileMenuOpen(false) }} style={{ padding: '16px 24px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', cursor: 'pointer', fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}>
+              <div
+                onClick={() => { setActiveModal('LOGIN'); setMobileMenuOpen(false) }}
+                style={{ padding: '16px 24px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}
+              >
                 로그인 <span style={{ color: '#ccc', fontSize: '10px' }}>→</span>
               </div>
-              <div onClick={() => { setActiveModal('JOIN'); setMobileMenuOpen(false) }} style={{ padding: '16px 24px', cursor: 'pointer', fontSize: '14px', color: '#4338CA', fontWeight: 500 }}>
+              <div
+                onClick={() => { setActiveModal('JOIN'); setMobileMenuOpen(false) }}
+                style={{ padding: '16px 24px', cursor: 'pointer', fontSize: '14px', color: '#4338CA', fontWeight: 500 }}
+              >
                 회원가입
               </div>
             </>
