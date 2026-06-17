@@ -19,6 +19,8 @@ function MyPage() {
   const [nickname, setNickname] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordMismatch, setPasswordMismatch] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -50,13 +52,21 @@ function MyPage() {
   }
 
   const handlePasswordUpdate = async () => {
-    if (!currentPassword.trim() || !newPassword.trim()) return alert('비밀번호를 입력해주세요.')
+    if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+      return alert('모든 비밀번호 항목을 입력해주세요.')
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMismatch(true)
+      return
+    }
+    setPasswordMismatch(false)
     setLoading(true)
     try {
       await api.patch('/api/users/me/password', null, { params: { currentPassword, newPassword } })
       showToast('비밀번호가 수정되었습니다.', 'success')
       setCurrentPassword('')
       setNewPassword('')
+      setConfirmPassword('')
     } catch (e: any) {
       const msg = e.response?.data?.message || '비밀번호 수정에 실패했습니다.'
       showToast(msg, 'error')
@@ -68,8 +78,8 @@ function MyPage() {
   const handleDeleteUser = async () => {
     if (!confirm('정말 탈퇴하시겠습니까? 모든 데이터가 삭제됩니다.')) return
     try {
-      await logout()
       await api.delete('/api/users/me')
+      await logout()
       showToast('회원 탈퇴가 완료되었습니다.', 'success')
       navigate('/')
     } catch (e) {
@@ -78,73 +88,153 @@ function MyPage() {
   }
 
   const isSocialUser = userInfo?.provider && userInfo.provider !== 'local'
+  const avatarColor = { bg: '#EEF2FF', color: '#4338CA' }
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '32px 24px' }}>
-      <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', marginBottom: '24px' }}>마이페이지</h1>
+    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '32px 24px' }}>
 
-      {/* 내 정보 */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid rgba(0,0,0,0.1)', padding: '24px', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#111827', marginBottom: '16px' }}>내 정보</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div>
-            <label style={{ fontSize: '13px', color: '#6B7280', marginBottom: '4px', display: 'block' }}>이메일</label>
-            <div style={{ fontSize: '14px', color: '#111827' }}>{userInfo?.email}</div>
+      {/* ✅ 프로필 헤더 */}
+      <div style={{
+        background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+        borderRadius: '16px', padding: '28px 32px', marginBottom: '20px',
+        display: 'flex', alignItems: 'center', gap: '20px',
+        boxShadow: '0 4px 16px rgba(67,56,202,0.3)'
+      }}>
+        <div style={{
+          width: '60px', height: '60px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.2)', color: '#fff',
+          fontSize: '24px', fontWeight: 700, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          border: '2px solid rgba(255,255,255,0.4)'
+        }}>
+          {userInfo?.nickname?.charAt(0)}
+        </div>
+        <div>
+          <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
+            {userInfo?.nickname}
+          </div>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>
+            {userInfo?.email}
           </div>
           {userInfo?.provider && userInfo.provider !== 'local' && (
-            <div>
-              <label style={{ fontSize: '13px', color: '#6B7280', marginBottom: '4px', display: 'block' }}>로그인 방식</label>
-              <div style={{ fontSize: '14px', color: '#111827' }}>
-                {userInfo.provider === 'kakao' ? '카카오' : '네이버'} 로그인
-              </div>
+            <div style={{
+              marginTop: '6px', fontSize: '11px', fontWeight: 600,
+              background: 'rgba(255,255,255,0.2)', color: '#fff',
+              padding: '2px 10px', borderRadius: '20px', display: 'inline-block'
+            }}>
+              {userInfo.provider === 'kakao' ? '카카오' : '네이버'} 로그인
             </div>
           )}
         </div>
       </div>
 
-      {/* 닉네임 수정 */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid rgba(0,0,0,0.1)', padding: '24px', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#111827', marginBottom: '16px' }}>닉네임 수정</h2>
+      {/* ✅ 닉네임 수정 */}
+      <div style={{
+        background: '#fff', borderRadius: '12px',
+        border: '1px solid #F3F4F6', padding: '24px', marginBottom: '12px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+      }}>
+        <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          ✏️ 닉네임 수정
+        </h2>
         <div style={{ display: 'flex', gap: '8px' }}>
           <input
             value={nickname}
             onChange={e => setNickname(e.target.value)}
             placeholder="새 닉네임"
-            style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '14px', outline: 'none' }}
+            style={{
+              flex: 1, padding: '10px 14px', borderRadius: '8px',
+              border: '1px solid #E5E7EB', fontSize: '14px', outline: 'none',
+              transition: 'border-color 0.15s'
+            }}
+            onFocus={e => e.currentTarget.style.borderColor = '#4338CA'}
+            onBlur={e => e.currentTarget.style.borderColor = '#E5E7EB'}
           />
           <button
             onClick={handleNicknameUpdate}
             disabled={loading}
-            style={{ padding: '10px 18px', borderRadius: '8px', fontSize: '14px', background: '#4338CA', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+            style={{
+              padding: '10px 18px', borderRadius: '8px', fontSize: '14px',
+              background: '#4338CA', color: '#fff', border: 'none',
+              cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s',
+              boxShadow: '0 1px 3px rgba(67,56,202,0.3)'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#3730A3'}
+            onMouseLeave={e => e.currentTarget.style.background = '#4338CA'}
           >
             수정
           </button>
         </div>
       </div>
 
-      {/* 비밀번호 수정 (소셜 로그인 사용자 제외) */}
+      {/* ✅ 비밀번호 수정 */}
       {!isSocialUser && (
-        <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid rgba(0,0,0,0.1)', padding: '24px', marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#111827', marginBottom: '16px' }}>비밀번호 수정</h2>
+        <div style={{
+          background: '#fff', borderRadius: '12px',
+          border: '1px solid #F3F4F6', padding: '24px', marginBottom: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+        }}>
+          <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '14px' }}>
+            🔒 비밀번호 수정
+          </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <input
               type="password"
               value={currentPassword}
               onChange={e => setCurrentPassword(e.target.value)}
               placeholder="현재 비밀번호"
-              style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '14px', outline: 'none' }}
+              style={{
+                padding: '10px 14px', borderRadius: '8px',
+                border: '1px solid #E5E7EB', fontSize: '14px', outline: 'none',
+                transition: 'border-color 0.15s'
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = '#4338CA'}
+              onBlur={e => e.currentTarget.style.borderColor = '#E5E7EB'}
             />
             <input
               type="password"
               value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
+              onChange={e => { setNewPassword(e.target.value); setPasswordMismatch(false) }}
               placeholder="새 비밀번호"
-              style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '14px', outline: 'none' }}
+              style={{
+                padding: '10px 14px', borderRadius: '8px', fontSize: '14px', outline: 'none',
+                border: `1px solid ${passwordMismatch ? '#DC2626' : '#E5E7EB'}`,
+                transition: 'border-color 0.15s'
+              }}
+              onFocus={e => { if (!passwordMismatch) e.currentTarget.style.borderColor = '#4338CA' }}
+              onBlur={e => { if (!passwordMismatch) e.currentTarget.style.borderColor = '#E5E7EB' }}
             />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={e => { setConfirmPassword(e.target.value); setPasswordMismatch(false) }}
+              placeholder="새 비밀번호 확인"
+              style={{
+                padding: '10px 14px', borderRadius: '8px', fontSize: '14px', outline: 'none',
+                border: `1px solid ${passwordMismatch ? '#DC2626' : '#E5E7EB'}`,
+                transition: 'border-color 0.15s'
+              }}
+              onFocus={e => { if (!passwordMismatch) e.currentTarget.style.borderColor = '#4338CA' }}
+              onBlur={e => { if (!passwordMismatch) e.currentTarget.style.borderColor = '#E5E7EB' }}
+            />
+            {passwordMismatch && (
+              <p style={{ fontSize: '13px', color: '#DC2626', margin: '0' }}>
+                새 비밀번호가 일치하지 않습니다.
+              </p>
+            )}
             <button
               onClick={handlePasswordUpdate}
               disabled={loading}
-              style={{ padding: '10px', borderRadius: '8px', fontSize: '14px', background: '#4338CA', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+              style={{
+                padding: '10px', borderRadius: '8px', fontSize: '14px',
+                background: loading ? '#A5B4FC' : '#4338CA',
+                color: '#fff', border: 'none',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontWeight: 600, transition: 'all 0.15s',
+                boxShadow: loading ? 'none' : '0 1px 3px rgba(67,56,202,0.3)'
+              }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#3730A3' }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#4338CA' }}
             >
               비밀번호 변경
             </button>
@@ -152,32 +242,65 @@ function MyPage() {
         </div>
       )}
 
-      {/* 내 활동 바로가기 */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid rgba(0,0,0,0.1)', padding: '24px', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#111827', marginBottom: '16px' }}>내 활동</h2>
+      {/* ✅ 내 활동 */}
+      <div style={{
+        background: '#fff', borderRadius: '12px',
+        border: '1px solid #F3F4F6', padding: '24px', marginBottom: '12px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+      }}>
+        <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '14px' }}>
+          📋 내 활동
+        </h2>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={() => navigate('/mypage/posts')}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '14px', background: '#EEF2FF', color: '#4338CA', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+            style={{
+              flex: 1, padding: '12px', borderRadius: '10px', fontSize: '14px',
+              background: '#EEF2FF', color: '#4338CA', border: '1px solid #C7D2FE',
+              cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#E0E7FF'}
+            onMouseLeave={e => e.currentTarget.style.background = '#EEF2FF'}
           >
-            내 게시글
+            📝 내 게시글
           </button>
           <button
             onClick={() => navigate('/mypage/studies')}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '14px', background: '#EEF2FF', color: '#4338CA', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+            style={{
+              flex: 1, padding: '12px', borderRadius: '10px', fontSize: '14px',
+              background: '#EEF2FF', color: '#4338CA', border: '1px solid #C7D2FE',
+              cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#E0E7FF'}
+            onMouseLeave={e => e.currentTarget.style.background = '#EEF2FF'}
           >
-            내 스터디
+            📚 내 스터디
           </button>
         </div>
       </div>
 
-      {/* 회원 탈퇴 */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '0.5px solid rgba(0,0,0,0.1)', padding: '24px' }}>
-        <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>회원 탈퇴</h2>
-        <p style={{ fontSize: '13px', color: '#9CA3AF', marginBottom: '16px' }}>탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.</p>
+      {/* ✅ 회원 탈퇴 */}
+      <div style={{
+        background: '#fff', borderRadius: '12px',
+        border: '1px solid #F3F4F6', padding: '24px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+      }}>
+        <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '6px' }}>
+          🚪 회원 탈퇴
+        </h2>
+        <p style={{ fontSize: '13px', color: '#9CA3AF', marginBottom: '16px' }}>
+          탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.
+        </p>
         <button
           onClick={handleDeleteUser}
-          style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', background: '#FEE2E2', color: '#DC2626', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+          style={{
+            padding: '10px 20px', borderRadius: '8px', fontSize: '14px',
+            background: '#FEF2F2', color: '#DC2626',
+            border: '1px solid #FECACA', cursor: 'pointer', fontWeight: 600,
+            transition: 'all 0.15s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+          onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
         >
           회원 탈퇴
         </button>

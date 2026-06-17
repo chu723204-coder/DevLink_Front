@@ -21,6 +21,8 @@ import MyStudiesPage from '../pages/mypage/MyStudiesPage'
 import NotificationPage from '../pages/notification/NotificationPage'
 import ChatListPage from '../pages/chat/ChatListPage'
 import ChatRoomPage from '../pages/chat/ChatRoomPage'
+import NoticeListPage from '../pages/notice/NoticeListPage'
+import NoticeDetailPage from '../pages/notice/NoticeDetailPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuthStore()
@@ -35,12 +37,14 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
 function UserLayout() {
   return (
-    <>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
       <AuthModal />
-      <Outlet />
+      <div style={{ flex: 1 }}>
+        <Outlet />
+      </div>
       <Footer />
-    </>
+    </div>
   )
 }
 
@@ -62,6 +66,10 @@ function AppRouter() {
           <Route path="/studies/:studyId" element={<StudyDetailPage />} />
           <Route path="/studies/write" element={<PrivateRoute><StudyWritePage /></PrivateRoute>} />
           <Route path="/studies/:studyId/edit" element={<PrivateRoute><StudyEditPage /></PrivateRoute>} />
+
+          {/* 공지사항 */}
+          <Route path="/notices" element={<NoticeListPage />} />
+          <Route path="/notices/:noticeId" element={<NoticeDetailPage />} />
 
           {/* 마이페이지 */}
           <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} />
