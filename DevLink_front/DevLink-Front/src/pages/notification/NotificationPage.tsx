@@ -12,6 +12,13 @@ interface Notification {
   createdAt: string
 }
 
+const typeIcon: Record<string, string> = {
+  COMMENT: '💬',
+  STUDY_APPLY: '✋',
+  STUDY_ACCEPT: '✅',
+  STUDY_REJECT: '❌',
+}
+
 function NotificationPage() {
   const navigate = useNavigate()
   const { resetUnread } = useNotificationStore()
@@ -72,15 +79,31 @@ function NotificationPage() {
   const unreadCount = notifications.filter(n => !n.isRead).length
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '32px 24px' }}>
+    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '32px 24px' }}>
+
+      {/* 헤더 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#111827' }}>
-          알림 {unreadCount > 0 && <span style={{ fontSize: '14px', color: '#4338CA' }}>({unreadCount})</span>}
-        </h1>
+        <div>
+          <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#111827', margin: 0 }}>
+            🔔 알림
+          </h1>
+          {!loading && (
+            <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '4px 0 0 0' }}>
+              {unreadCount > 0 ? `읽지 않은 알림 ${unreadCount}개` : '모든 알림을 읽었어요'}
+            </p>
+          )}
+        </div>
         {unreadCount > 0 && (
           <button
             onClick={handleReadAll}
-            style={{ fontSize: '13px', color: '#4338CA', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{
+              fontSize: '13px', color: '#4338CA', background: '#EEF2FF',
+              border: '1px solid #C7D2FE', cursor: 'pointer',
+              padding: '6px 14px', borderRadius: '8px', fontWeight: 600,
+              transition: 'all 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#E0E7FF'}
+            onMouseLeave={e => e.currentTarget.style.background = '#EEF2FF'}
           >
             전체 읽음
           </button>
@@ -88,7 +111,22 @@ function NotificationPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#9CA3AF' }}>로딩 중...</div>
+        // ✅ 로딩 스켈레톤
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{
+              background: '#fff', borderRadius: '12px',
+              border: '1px solid #F3F4F6', padding: '16px 20px',
+              display: 'flex', gap: '12px', alignItems: 'center'
+            }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#F3F4F6', flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ width: '70%', height: '14px', background: '#F3F4F6', borderRadius: '4px', marginBottom: '6px' }} />
+                <div style={{ width: '30%', height: '12px', background: '#F9FAFB', borderRadius: '4px' }} />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : notifications.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {notifications.map(notification => (
@@ -98,31 +136,71 @@ function NotificationPage() {
               style={{
                 background: notification.isRead ? '#fff' : '#EEF2FF',
                 borderRadius: '12px',
-                border: '0.5px solid rgba(0,0,0,0.1)',
+                border: `1px solid ${notification.isRead ? '#F3F4F6' : '#C7D2FE'}`,
                 padding: '16px 20px',
                 cursor: notification.targetUrl ? 'pointer' : 'default',
-                transition: 'all 0.15s'
+                transition: 'all 0.15s',
+                display: 'flex', alignItems: 'flex-start', gap: '12px',
+                boxShadow: notification.isRead ? '0 1px 3px rgba(0,0,0,0.04)' : '0 1px 3px rgba(67,56,202,0.08)'
+              }}
+              onMouseEnter={e => {
+                if (notification.targetUrl) {
+                  e.currentTarget.style.borderColor = '#4338CA'
+                  e.currentTarget.style.transform = 'translateY(-1px)'
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = notification.isRead ? '#F3F4F6' : '#C7D2FE'
+                e.currentTarget.style.transform = 'translateY(0)'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', color: '#111827', marginBottom: '4px' }}>
-                    {notification.content}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
-                    {formatDate(notification.createdAt)}
-                  </div>
-                </div>
-                {!notification.isRead && (
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4338CA', marginLeft: '12px', marginTop: '4px', flexShrink: 0 }} />
-                )}
+              {/* ✅ 알림 타입 아이콘 */}
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                background: notification.isRead ? '#F3F4F6' : '#E0E7FF',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '16px'
+              }}>
+                {typeIcon[notification.type] || '🔔'}
               </div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontSize: '14px', color: '#111827', marginBottom: '4px',
+                  fontWeight: notification.isRead ? 400 : 600, lineHeight: '1.5'
+                }}>
+                  {notification.content}
+                </div>
+                <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
+                  {formatDate(notification.createdAt)}
+                </div>
+              </div>
+
+              {/* ✅ 읽지 않음 표시 */}
+              {!notification.isRead && (
+                <div style={{
+                  width: '8px', height: '8px', borderRadius: '50%',
+                  background: '#4338CA', flexShrink: 0, marginTop: '4px'
+                }} />
+              )}
             </div>
           ))}
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#9CA3AF', fontSize: '14px' }}>
-          알림이 없습니다
+        // ✅ 빈 상태
+        <div style={{
+          textAlign: 'center', padding: '64px 24px',
+          background: '#fff', borderRadius: '16px',
+          border: '1px solid #F3F4F6',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+        }}>
+          <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔔</div>
+          <div style={{ fontSize: '15px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+            새로운 알림이 없어요
+          </div>
+          <div style={{ fontSize: '13px', color: '#9CA3AF' }}>
+            댓글, 스터디 지원 등 새 소식이 오면 알려드려요
+          </div>
         </div>
       )}
     </div>
