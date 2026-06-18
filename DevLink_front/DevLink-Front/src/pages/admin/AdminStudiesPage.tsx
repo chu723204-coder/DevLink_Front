@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../service/api'
+import { useToastStore } from '../../store/toastStore'
 
 interface Study {
   studyId: number
@@ -13,6 +14,7 @@ interface Study {
 function AdminStudiesPage() {
   const [studies, setStudies] = useState<Study[]>([])
   const [loading, setLoading] = useState(true)
+  const { success, error } = useToastStore()
 
   useEffect(() => {
     fetchStudies()
@@ -35,9 +37,10 @@ function AdminStudiesPage() {
     try {
       await api.patch(`/api/admin/studies/${studyId}/close`)
       setStudies(prev => prev.map(s => s.studyId === studyId ? { ...s, status: 'CLOSED' } : s))
+      success('스터디가 마감되었습니다.')
     } catch (e) {
       console.error('스터디 마감 실패', e)
-      alert('처리에 실패했습니다.')
+      error('처리에 실패했습니다.')
     }
   }
 
@@ -46,9 +49,10 @@ function AdminStudiesPage() {
     try {
       await api.delete(`/api/admin/studies/${studyId}`)
       setStudies(prev => prev.filter(s => s.studyId !== studyId))
+      success('스터디가 삭제되었습니다.')
     } catch (e) {
       console.error('스터디 삭제 실패', e)
-      alert('처리에 실패했습니다.')
+      error('처리에 실패했습니다.')
     }
   }
 
@@ -62,7 +66,6 @@ function AdminStudiesPage() {
 
   return (
     <div style={{ padding: '32px 40px' }}>
-      {/* 헤더 */}
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#111827', margin: 0 }}>
           📚 스터디 관리
@@ -72,13 +75,11 @@ function AdminStudiesPage() {
         </p>
       </div>
 
-      {/* 테이블 */}
       <div style={{
         background: '#fff', borderRadius: '16px',
         border: '1px solid #F3F4F6',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)', overflow: 'hidden'
       }}>
-        {/* 테이블 헤더 */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '60px 1fr 120px 100px 120px 120px',
@@ -94,7 +95,6 @@ function AdminStudiesPage() {
           <div>관리</div>
         </div>
 
-        {/* 테이블 바디 */}
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#9CA3AF', fontSize: '14px' }}>
             불러오는 중...
