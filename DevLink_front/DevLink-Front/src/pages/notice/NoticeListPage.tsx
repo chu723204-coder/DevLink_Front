@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/useAuthStore'
 import api from '../../service/api'
 
 interface Notice {
@@ -12,6 +13,8 @@ interface Notice {
 
 function NoticeListPage() {
   const navigate = useNavigate()
+  const { role } = useAuthStore()
+  const isAdmin = role === 'ROLE_ADMIN'
   const [notices, setNotices] = useState<Notice[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -30,6 +33,18 @@ function NoticeListPage() {
     fetchNotices()
   }, [])
 
+  const handleDelete = async (e: React.MouseEvent, noticeId: number) => {
+    e.stopPropagation()
+    if (!window.confirm('공지사항을 삭제하시겠습니까?')) return
+    try {
+      await api.delete(`/api/notices/${noticeId}`)
+      setNotices(prev => prev.filter(n => n.noticeId !== noticeId))
+    } catch (e) {
+      console.error('삭제 실패', e)
+      alert('삭제에 실패했습니다.')
+    }
+  }
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ko-KR')
   }
@@ -38,14 +53,32 @@ function NoticeListPage() {
     <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '24px 60px' }}>
 
       {/* 헤더 */}
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#111827', margin: 0 }}>
-          📢 공지사항
-        </h1>
-        {!loading && (
-          <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '4px 0 0 0' }}>
-            총 {notices.length}개의 공지사항
-          </p>
+      <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#111827', margin: 0 }}>
+            📢 공지사항
+          </h1>
+          {!loading && (
+            <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '4px 0 0 0' }}>
+              총 {notices.length}개의 공지사항
+            </p>
+          )}
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => navigate('/notices/write')}
+            style={{
+              padding: '8px 18px', borderRadius: '8px', fontSize: '13px',
+              background: '#4338CA', color: '#fff', border: 'none',
+              cursor: 'pointer', fontWeight: 600,
+              boxShadow: '0 1px 3px rgba(67,56,202,0.3)',
+              transition: 'all 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#3730A3'}
+            onMouseLeave={e => e.currentTarget.style.background = '#4338CA'}
+          >
+            + 공지 작성
+          </button>
         )}
       </div>
 
@@ -86,7 +119,6 @@ function NoticeListPage() {
                 e.currentTarget.style.transform = 'translateY(0)'
               }}
             >
-              {/* 번호 */}
               <div style={{
                 width: '32px', height: '32px', borderRadius: '8px',
                 background: '#EEF2FF', color: '#4338CA',
@@ -96,7 +128,6 @@ function NoticeListPage() {
                 {notices.length - index}
               </div>
 
-              {/* 내용 */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontSize: '15px', fontWeight: 600, color: '#111827',
@@ -111,7 +142,38 @@ function NoticeListPage() {
                   <span>{formatDate(notice.createdAt)}</span>
                 </div>
               </div>
-              <span style={{ fontSize: '12px', color: '#9CA3AF', flexShrink: 0 }}>→</span>
+
+              {/* 관리자 수정/삭제 버튼 */}
+              {isAdmin && (
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                  <button
+                    onClick={e => { e.stopPropagation(); navigate(`/notices/${notice.noticeId}/edit`) }}
+                    style={{
+                      padding: '4px 10px', borderRadius: '6px', fontSize: '12px',
+                      background: '#F9FAFB', color: '#374151',
+                      border: '1px solid #E5E7EB', cursor: 'pointer', transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F3F4F6'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#F9FAFB'}
+                  >
+                    수정
+                  </button>
+                  <button
+                    onClick={e => handleDelete(e, notice.noticeId)}
+                    style={{
+                      padding: '4px 10px', borderRadius: '6px', fontSize: '12px',
+                      background: '#FEF2F2', color: '#DC2626',
+                      border: '1px solid #FECACA', cursor: 'pointer', transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
+                  >
+                    삭제
+                  </button>
+                </div>
+              )}
+
+              {!isAdmin && <span style={{ fontSize: '12px', color: '#9CA3AF', flexShrink: 0 }}>→</span>}
             </div>
           ))}
         </div>

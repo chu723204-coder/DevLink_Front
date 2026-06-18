@@ -3,65 +3,50 @@ import { useParams, useNavigate } from 'react-router-dom'
 import api from '../../service/api'
 import { useToastStore } from '../../store/toastStore'
 
-const categories = [
-  { value: 'FREE', label: '자유', color: '#4338CA', bg: '#EEF2FF' },
-  { value: 'INTERVIEW', label: '면접후기', color: '#9D174D', bg: '#FDF2F8' },
-  { value: 'TECH', label: '기술질문', color: '#166534', bg: '#F0FDF4' },
-  { value: 'JOB', label: '취업정보', color: '#92400E', bg: '#FFFBEB' },
-]
-
-function PostEditPage() {
-  const { postId } = useParams<{ postId: string }>()
+function NoticeEditPage() {
+  const { noticeId } = useParams<{ noticeId: string }>()
   const navigate = useNavigate()
   const { showToast } = useToastStore()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [category, setCategory] = useState('FREE')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const fetchPost = async () => {
+    const fetchNotice = async () => {
       try {
-        const res = await api.get(`/api/posts/${postId}`)
-        const post = res.data.data
-        setTitle(post.title)
-        setContent(post.content)
-        setCategory(post.category)
+        const res = await api.get(`/api/notices/${noticeId}`)
+        const notice = res.data.data
+        setTitle(notice.title)
+        setContent(notice.content)
       } catch (e) {
-        console.error('게시글 조회 실패', e)
-        navigate('/posts')
+        console.error('공지사항 조회 실패', e)
+        navigate('/notices')
       }
     }
-    fetchPost()
-  }, [postId])
+    fetchNotice()
+  }, [noticeId])
 
   const handleSubmit = async () => {
     if (!title.trim()) return alert('제목을 입력해주세요.')
     if (!content.trim()) return alert('내용을 입력해주세요.')
     setLoading(true)
     try {
-      await api.put(`/api/posts/${postId}`, null, {
-        params: { title, content, category }
-      })
-      showToast('게시글이 수정되었습니다.', 'success')
-      navigate(`/posts/${postId}`)
+      await api.put(`/api/notices/${noticeId}`, null, { params: { title, content } })
+      showToast('공지사항이 수정되었습니다.', 'success')
+      navigate(`/notices/${noticeId}`)
     } catch (e) {
-      console.error('게시글 수정 실패', e)
-      showToast('게시글 수정에 실패했습니다.', 'error')
+      console.error('공지사항 수정 실패', e)
+      showToast('공지사항 수정에 실패했습니다.', 'error')
     } finally {
       setLoading(false)
     }
   }
 
-  const selectedCat = categories.find(c => c.value === category)!
-
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
-
-      {/* 헤더 */}
       <div style={{ marginBottom: '24px' }}>
         <button
-          onClick={() => navigate(`/posts/${postId}`)}
+          onClick={() => navigate(`/notices/${noticeId}`)}
           style={{
             background: 'none', border: 'none', color: '#6B7280',
             cursor: 'pointer', fontSize: '13px', padding: '6px 10px',
@@ -80,7 +65,7 @@ function PostEditPage() {
           ← 돌아가기
         </button>
         <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', margin: 0 }}>
-          게시글 수정
+          공지사항 수정
         </h1>
       </div>
 
@@ -90,34 +75,6 @@ function PostEditPage() {
         display: 'flex', flexDirection: 'column', gap: '20px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
       }}>
-
-        {/* 카테고리 */}
-        <div>
-          <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '10px', display: 'block' }}>
-            카테고리
-          </label>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {categories.map(cat => (
-              <button
-                key={cat.value}
-                onClick={() => setCategory(cat.value)}
-                style={{
-                  padding: '7px 16px', borderRadius: '20px', fontSize: '13px',
-                  fontWeight: category === cat.value ? 600 : 500,
-                  cursor: 'pointer', transition: 'all 0.15s', border: '2px solid',
-                  borderColor: category === cat.value ? cat.color : '#E5E7EB',
-                  background: category === cat.value ? cat.bg : '#fff',
-                  color: category === cat.value ? cat.color : '#6B7280',
-                }}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <hr style={{ border: 'none', borderTop: '1px solid #F3F4F6', margin: 0 }} />
-
         {/* 제목 */}
         <div>
           <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px', display: 'block' }}>
@@ -167,27 +124,10 @@ function PostEditPage() {
           </div>
         </div>
 
-        {/* 미리보기 */}
-        <div style={{
-          padding: '12px 16px', borderRadius: '10px',
-          background: '#F9FAFB', border: '1px solid #F3F4F6',
-          display: 'flex', alignItems: 'center', gap: '8px'
-        }}>
-          <span style={{
-            padding: '2px 10px', borderRadius: '20px', fontSize: '11px',
-            fontWeight: 600, background: selectedCat.bg, color: selectedCat.color
-          }}>
-            {selectedCat.label}
-          </span>
-          <span style={{ fontSize: '13px', color: title ? '#111827' : '#9CA3AF', fontWeight: title ? 500 : 400 }}>
-            {title || '제목을 입력하면 여기에 미리보기가 표시돼요'}
-          </span>
-        </div>
-
         {/* 버튼 */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '4px' }}>
           <button
-            onClick={() => navigate(`/posts/${postId}`)}
+            onClick={() => navigate(`/notices/${noticeId}`)}
             style={{
               padding: '10px 20px', borderRadius: '8px', fontSize: '14px',
               background: '#F9FAFB', color: '#374151',
@@ -212,7 +152,7 @@ function PostEditPage() {
             onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#3730A3' }}
             onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#4338CA' }}
           >
-            {loading ? '수정 중...' : '✏️ 수정 완료'}
+            {loading ? '수정 중...' : '📢 수정 완료'}
           </button>
         </div>
       </div>
@@ -220,4 +160,4 @@ function PostEditPage() {
   )
 }
 
-export default PostEditPage
+export default NoticeEditPage

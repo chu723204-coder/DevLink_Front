@@ -12,11 +12,29 @@ const navItems = [
   { label: '공지사항', path: '/notices' },
 ]
 
+const notiTypeLabel: Record<string, string> = {
+  COMMENT: '💬',
+  LIKE: '❤️',
+  STUDY_APPLY: '📩',
+  STUDY_ACCEPT: '✅',
+  STUDY_REJECT: '❌',
+}
+
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return '방금 전'
+  if (min < 60) return `${min}분 전`
+  const hour = Math.floor(min / 60)
+  if (hour < 24) return `${hour}시간 전`
+  return `${Math.floor(hour / 24)}일 전`
+}
+
 function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const { isLoggedIn, logout, setActiveModal, role, nickname } = useAuthStore()
-  const { unreadCount } = useNotificationStore()
+  const { unreadCount, notifications, loadNotifications, markAsRead, markAllAsRead } = useNotificationStore()
   const { success } = useToastStore()
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -34,6 +52,12 @@ function Navbar() {
     setDropdownOpen(false)
     setMobileMenuOpen(false)
   }
+
+  useEffect(() => {
+    if (notiOpen && isLoggedIn) {
+      loadNotifications()
+    }
+  }, [notiOpen])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -54,6 +78,12 @@ function Navbar() {
     setNotiOpen(false)
   }, [location.pathname])
 
+  const handleNotiClick = async (id: number, targetUrl: string, isRead: boolean) => {
+    if (!isRead) await markAsRead(id)
+    setNotiOpen(false)
+    if (targetUrl) navigate(targetUrl)
+  }
+
   return (
     <>
       <nav style={{
@@ -69,7 +99,7 @@ function Navbar() {
           alignItems: 'center'
         }}>
 
-          {/* ✅ 왼쪽: 로고 */}
+          {/* 왼쪽: 로고 */}
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <div
               onClick={() => navigate('/')}
@@ -78,7 +108,6 @@ function Navbar() {
                 cursor: 'pointer', textDecoration: 'none'
               }}
             >
-              {/* ✅ 로고 아이콘 뱃지 */}
               <div style={{
                 width: '28px', height: '28px', borderRadius: '8px',
                 background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
@@ -87,7 +116,6 @@ function Navbar() {
               }}>
                 <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>D</span>
               </div>
-              {/* ✅ 로고 텍스트 통일 */}
               <span style={{
                 fontSize: '17px', fontWeight: 700,
                 color: '#111827', letterSpacing: '-0.5px'
@@ -97,7 +125,7 @@ function Navbar() {
             </div>
           </div>
 
-          {/* ✅ 중앙: 네비 메뉴 */}
+          {/* 중앙: 네비 메뉴 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
             {navItems.map(item => {
               const isActive = location.pathname.startsWith(item.path)
@@ -129,7 +157,6 @@ function Navbar() {
                   }}
                 >
                   {item.label}
-                  {/* ✅ 활성 메뉴 하단 인디고 언더라인 */}
                   {isActive && (
                     <div style={{
                       position: 'absolute', bottom: '-1px', left: '50%',
@@ -143,7 +170,7 @@ function Navbar() {
             })}
           </div>
 
-          {/* ✅ 오른쪽: 버튼들 */}
+          {/* 오른쪽: 버튼들 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
             {isLoggedIn ? (
               <>
@@ -172,7 +199,7 @@ function Navbar() {
                   </button>
                 )}
 
-                {/* ✅ 알림 버튼 */}
+                {/* 알림 버튼 */}
                 <div ref={notiRef} style={{ position: 'relative' }}>
                   <button
                     onClick={() => setNotiOpen(prev => !prev)}
@@ -207,20 +234,92 @@ function Navbar() {
                       }} />
                     )}
                   </button>
+
+                  {/* 알림 드롭다운 */}
                   {notiOpen && (
                     <div style={{
                       position: 'absolute', top: 'calc(100% + 8px)', right: 0,
                       width: '320px', background: '#fff',
                       border: '1px solid #F3F4F6', borderRadius: '12px',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200,
+                      overflow: 'hidden'
                     }}>
-                      <div style={{ padding: '14px 16px', borderBottom: '1px solid #F3F4F6', fontSize: '13px', fontWeight: 600, color: '#111827' }}>
-                        알림
+                      {/* 드롭다운 헤더 */}
+                      <div style={{
+                        padding: '14px 16px', borderBottom: '1px solid #F3F4F6',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                      }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>알림</span>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllAsRead}
+                            style={{
+                              fontSize: '11px', color: '#4338CA', background: 'none',
+                              border: 'none', cursor: 'pointer', fontWeight: 500
+                            }}
+                          >
+                            모두 읽음
+                          </button>
+                        )}
                       </div>
-                      <div style={{ padding: '24px 16px', fontSize: '13px', color: '#9CA3AF', textAlign: 'center' }}>
-                        <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔔</div>
-                        새로운 알림이 없어요
+
+                      {/* 알림 목록 */}
+                      <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                        {notifications.length === 0 ? (
+                          <div style={{
+                            padding: '24px 16px', fontSize: '13px',
+                            color: '#9CA3AF', textAlign: 'center'
+                          }}>
+                            <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔔</div>
+                            새로운 알림이 없어요
+                          </div>
+                        ) : (
+                          notifications.slice(0, 5).map(noti => (
+                            <div
+                              key={noti.id}
+                              onClick={() => handleNotiClick(noti.id, noti.targetUrl, noti.isRead)}
+                              style={{
+                                padding: '12px 16px',
+                                borderBottom: '1px solid #F9FAFB',
+                                cursor: 'pointer',
+                                background: noti.isRead ? 'transparent' : '#F5F3FF',
+                                transition: 'background 0.1s',
+                                display: 'flex', alignItems: 'flex-start', gap: '10px'
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
+                              onMouseLeave={e => e.currentTarget.style.background = noti.isRead ? 'transparent' : '#F5F3FF'}
+                            >
+                              <span style={{ fontSize: '16px', flexShrink: 0, marginTop: '1px' }}>
+                                {notiTypeLabel[noti.type] ?? '🔔'}
+                              </span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                {/* ✅ noti.message 로 수정 */}
+                                <div style={{
+                                  fontSize: '12px', color: '#111827',
+                                  lineHeight: '1.5',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical' as const,
+                                  overflow: 'hidden'
+                                }}>
+                                  {noti.message}
+                                </div>
+                                <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>
+                                  {timeAgo(noti.createdAt)}
+                                </div>
+                              </div>
+                              {!noti.isRead && (
+                                <span style={{
+                                  width: '6px', height: '6px', borderRadius: '50%',
+                                  background: '#4338CA', flexShrink: 0, marginTop: '5px'
+                                }} />
+                              )}
+                            </div>
+                          ))
+                        )}
                       </div>
+
+                      {/* 전체보기 */}
                       <div
                         onClick={() => { navigate('/notifications'); setNotiOpen(false) }}
                         style={{
@@ -237,7 +336,7 @@ function Navbar() {
                   )}
                 </div>
 
-                {/* ✅ 프로필 드롭다운 */}
+                {/* 프로필 드롭다운 */}
                 <div ref={dropdownRef} style={{ position: 'relative' }}>
                   <button
                     onClick={() => setDropdownOpen(prev => !prev)}
