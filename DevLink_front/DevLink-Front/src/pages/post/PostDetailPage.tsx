@@ -13,6 +13,7 @@ interface Post {
   commentCount: number
   likeCount: number
   viewCount: number
+  liked?: boolean
 }
 
 interface Comment {
@@ -55,6 +56,10 @@ function PostDetailPage() {
   const [loading, setLoading] = useState(true)
   const [liked, setLiked] = useState(false)
 
+  // 댓글 수정 상태
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
+  const [editingContent, setEditingContent] = useState('')
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
@@ -63,8 +68,19 @@ function PostDetailPage() {
           api.get(`/api/posts/${postId}`),
           api.get(`/api/posts/${postId}/comments`)
         ])
-        setPost(postRes.data.data)
+        const postData = postRes.data.data
+        setPost(postData)
         setComments(commentRes.data.data || [])
+
+        // ✅ 좋아요 상태 서버에서 불러오기
+        if (isLoggedIn) {
+          try {
+            const likeRes = await api.get(`/api/posts/${postId}/like`)
+            setLiked(likeRes.data.data ?? false)
+          } catch {
+            setLiked(false)
+          }
+        }
       } catch (e) {
         console.error('데이터 조회 실패', e)
       } finally {
@@ -72,7 +88,7 @@ function PostDetailPage() {
       }
     }
     fetchData()
-  }, [postId])
+  }, [postId, isLoggedIn])
 
   const handleLike = async () => {
     if (!isLoggedIn) return alert('로그인이 필요합니다.')
@@ -104,12 +120,36 @@ function PostDetailPage() {
   }
 
   const handleCommentDelete = async (commentId: number) => {
+    if (!confirm('댓글을 삭제하시겠습니까?')) return
     try {
       await api.delete(`/api/posts/comments/${commentId}`)
       setComments(prev => prev.filter(c => c.commentId !== commentId))
       setPost(prev => prev ? { ...prev, commentCount: prev.commentCount - 1 } : prev)
     } catch (e) {
       console.error('댓글 삭제 실패', e)
+    }
+  }
+
+  // ✅ 댓글 수정 시작
+  const handleCommentEditStart = (comment: Comment) => {
+    setEditingCommentId(comment.commentId)
+    setEditingContent(comment.content)
+  }
+
+  // ✅ 댓글 수정 완료
+  const handleCommentEditSubmit = async (commentId: number) => {
+    if (!editingContent.trim()) return
+    try {
+      await api.put(`/api/posts/comments/${commentId}`, null, {
+        params: { content: editingContent }
+      })
+      setComments(prev => prev.map(c =>
+        c.commentId === commentId ? { ...c, content: editingContent } : c
+      ))
+      setEditingCommentId(null)
+      setEditingContent('')
+    } catch (e) {
+      console.error('댓글 수정 실패', e)
     }
   }
 
@@ -167,7 +207,6 @@ function PostDetailPage() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
 
-      {/* ✅ 뒤로가기 - 단독 줄로 분리 */}
       <div style={{ marginBottom: '20px' }}>
         <button
           onClick={() => navigate('/posts')}
@@ -361,59 +400,120 @@ function PostDetailPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {comments.length > 0 ? comments.map(comment => {
             const commentAvatar = getAvatarColor(comment.nickname || '')
+            const isEditing = editingCommentId === comment.commentId
             return (
               <div key={comment.commentId} style={{
                 padding: '14px 16px', borderRadius: '10px',
                 background: '#F9FAFB', border: '1px solid #F3F4F6',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
                 transition: 'border-color 0.15s'
               }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = '#E5E7EB'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = '#F3F4F6'}
               >
-                <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
-                  <div style={{
-                    width: '28px', height: '28px', borderRadius: '50%',
-                    background: commentAvatar.bg, color: commentAvatar.color,
-                    fontSize: '11px', fontWeight: 700, flexShrink: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>
-                    {(comment.nickname || '?').charAt(0)}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>
-                        {comment.nickname || '알 수 없음'}
-                      </span>
-                      <span style={{ fontSize: '11px', color: '#9CA3AF' }}>
-                        {formatDate(comment.createdAt)}
-                      </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
+                    <div style={{
+                      width: '28px', height: '28px', borderRadius: '50%',
+                      background: commentAvatar.bg, color: commentAvatar.color,
+                      fontSize: '11px', fontWeight: 700, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {(comment.nickname || '?').charAt(0)}
                     </div>
-                    <div style={{ fontSize: '14px', color: '#374151', lineHeight: '1.6' }}>
-                      {comment.content}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>
+                          {comment.nickname || '알 수 없음'}
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#9CA3AF' }}>
+                          {formatDate(comment.createdAt)}
+                        </span>
+                      </div>
+
+                      {/* ✅ 수정 중이면 input, 아니면 텍스트 */}
+                      {isEditing ? (
+                        <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                          <input
+                            value={editingContent}
+                            onChange={e => setEditingContent(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleCommentEditSubmit(comment.commentId)}
+                            style={{
+                              flex: 1, padding: '8px 12px', borderRadius: '8px',
+                              border: '1px solid #4338CA', fontSize: '14px', outline: 'none'
+                            }}
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => handleCommentEditSubmit(comment.commentId)}
+                            style={{
+                              padding: '8px 14px', borderRadius: '8px', fontSize: '13px',
+                              background: '#4338CA', color: '#fff', border: 'none',
+                              cursor: 'pointer', fontWeight: 600
+                            }}
+                          >
+                            완료
+                          </button>
+                          <button
+                            onClick={() => setEditingCommentId(null)}
+                            style={{
+                              padding: '8px 14px', borderRadius: '8px', fontSize: '13px',
+                              background: '#F3F4F6', color: '#374151',
+                              border: '1px solid #E5E7EB', cursor: 'pointer'
+                            }}
+                          >
+                            취소
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '14px', color: '#374151', lineHeight: '1.6' }}>
+                          {comment.content}
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* ✅ 수정/삭제 버튼 */}
+                  {isLoggedIn && comment.userId === userId && !isEditing && (
+                    <div style={{ display: 'flex', gap: '4px', marginLeft: '12px', flexShrink: 0 }}>
+                      <button
+                        onClick={() => handleCommentEditStart(comment)}
+                        style={{
+                          background: 'none', border: 'none', color: '#9CA3AF',
+                          fontSize: '12px', cursor: 'pointer',
+                          padding: '4px 8px', borderRadius: '4px', transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.color = '#4338CA'
+                          e.currentTarget.style.background = '#EEF2FF'
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.color = '#9CA3AF'
+                          e.currentTarget.style.background = 'none'
+                        }}
+                      >
+                        수정
+                      </button>
+                      <button
+                        onClick={() => handleCommentDelete(comment.commentId)}
+                        style={{
+                          background: 'none', border: 'none', color: '#D1D5DB',
+                          fontSize: '12px', cursor: 'pointer',
+                          padding: '4px 8px', borderRadius: '4px', transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.color = '#DC2626'
+                          e.currentTarget.style.background = '#FEF2F2'
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.color = '#D1D5DB'
+                          e.currentTarget.style.background = 'none'
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  )}
                 </div>
-                {isLoggedIn && comment.userId === userId && (
-                  <button
-                    onClick={() => handleCommentDelete(comment.commentId)}
-                    style={{
-                      background: 'none', border: 'none', color: '#D1D5DB',
-                      fontSize: '12px', cursor: 'pointer', marginLeft: '12px',
-                      padding: '4px 8px', borderRadius: '4px', transition: 'all 0.15s', flexShrink: 0
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.color = '#DC2626'
-                      e.currentTarget.style.background = '#FEF2F2'
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.color = '#D1D5DB'
-                      e.currentTarget.style.background = 'none'
-                    }}
-                  >
-                    삭제
-                  </button>
-                )}
               </div>
             )
           }) : (

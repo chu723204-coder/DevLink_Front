@@ -6,10 +6,9 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Refresh Token 쿠키 전송
+  withCredentials: true,
 });
 
-// 요청 인터셉터 — Zustand에서 Access Token 읽어서 헤더에 추가
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().accessToken;
@@ -21,7 +20,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터 — 401 시 토큰 재발급
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -29,7 +27,6 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        // Refresh Token (HttpOnly Cookie) 으로 새 Access Token 발급
         const res = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"}/api/auth/reissue`,
           {},
@@ -37,7 +34,6 @@ api.interceptors.response.use(
         );
         const newToken = res.data.data;
         useAuthStore.getState().setAccessToken(newToken);
-
         return api(originalRequest);
       } catch {
         useAuthStore.getState().logout();
@@ -47,5 +43,15 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ===== 알림 API =====
+export const fetchNotifications = () =>
+  api.get('/api/notifications')
+
+export const markNotificationRead = (id: number) =>
+  api.patch(`/api/notifications/${id}/read`)
+
+export const markAllNotificationsRead = () =>
+  api.patch('/api/notifications/read-all')
 
 export default api;

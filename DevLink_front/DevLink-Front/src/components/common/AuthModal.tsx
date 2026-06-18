@@ -79,7 +79,6 @@ const TERMS_CONTENT = {
   }
 }
 
-// ── 로그인 폼 ──────────────────────────────────────────────
 function LoginForm({ setTab }: { setTab: (tab: 'LOGIN' | 'JOIN') => void }) {
   const { login, closeModal } = useAuthStore()
   const { success, error } = useToastStore()
@@ -101,6 +100,11 @@ function LoginForm({ setTab }: { setTab: (tab: 'LOGIN' | 'JOIN') => void }) {
     setIsLoading(true)
     try {
       const res = await api.post('/api/auth/login', { email, password: pw })
+      // ✅ success: false 체크
+      if (!res.data.success) {
+        error(res.data.message || '로그인에 실패했습니다.')
+        return
+      }
       const { userId, email: userEmail, nickname, role, accessToken } = res.data.data
       login(userId, userEmail, nickname, role, accessToken)
       success('로그인되었습니다.')
@@ -122,7 +126,6 @@ function LoginForm({ setTab }: { setTab: (tab: 'LOGIN' | 'JOIN') => void }) {
 
   return (
     <div>
-      {/* ✅ 로고 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <div style={{
           width: '28px', height: '28px', borderRadius: '8px',

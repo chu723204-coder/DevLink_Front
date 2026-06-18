@@ -6,7 +6,7 @@ import api from '../../service/api'
 interface Notification {
   notificationId: number
   type: string
-  content: string
+  message: string   // ✅ content → message
   isRead: boolean
   targetUrl: string
   createdAt: string
@@ -14,6 +14,7 @@ interface Notification {
 
 const typeIcon: Record<string, string> = {
   COMMENT: '💬',
+  LIKE: '❤️',
   STUDY_APPLY: '✋',
   STUDY_ACCEPT: '✅',
   STUDY_REJECT: '❌',
@@ -111,7 +112,6 @@ function NotificationPage() {
       </div>
 
       {loading ? (
-        // ✅ 로딩 스켈레톤
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {[1, 2, 3].map(i => (
             <div key={i} style={{
@@ -154,7 +154,6 @@ function NotificationPage() {
                 e.currentTarget.style.transform = 'translateY(0)'
               }}
             >
-              {/* ✅ 알림 타입 아이콘 */}
               <div style={{
                 width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
                 background: notification.isRead ? '#F3F4F6' : '#E0E7FF',
@@ -169,14 +168,13 @@ function NotificationPage() {
                   fontSize: '14px', color: '#111827', marginBottom: '4px',
                   fontWeight: notification.isRead ? 400 : 600, lineHeight: '1.5'
                 }}>
-                  {notification.content}
+                  {notification.message}  {/* ✅ content → message */}
                 </div>
                 <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
                   {formatDate(notification.createdAt)}
                 </div>
               </div>
 
-              {/* ✅ 읽지 않음 표시 */}
               {!notification.isRead && (
                 <div style={{
                   width: '8px', height: '8px', borderRadius: '50%',
@@ -187,7 +185,6 @@ function NotificationPage() {
           ))}
         </div>
       ) : (
-        // ✅ 빈 상태
         <div style={{
           textAlign: 'center', padding: '64px 24px',
           background: '#fff', borderRadius: '16px',
