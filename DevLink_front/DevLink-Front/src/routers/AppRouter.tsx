@@ -23,6 +23,13 @@ import ChatListPage from '../pages/chat/ChatListPage'
 import ChatRoomPage from '../pages/chat/ChatRoomPage'
 import NoticeListPage from '../pages/notice/NoticeListPage'
 import NoticeDetailPage from '../pages/notice/NoticeDetailPage'
+import NoticeWritePage from '../pages/notice/NoticeWritePage'
+import NoticeEditPage from '../pages/notice/NoticeEditPage'
+import AdminLayout from '../pages/admin/AdminLayout'
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
+import AdminUsersPage from '../pages/admin/AdminUsersPage'
+import AdminPostsPage from '../pages/admin/AdminPostsPage'
+import AdminStudiesPage from '../pages/admin/AdminStudiesPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuthStore()
@@ -69,7 +76,9 @@ function AppRouter() {
 
           {/* 공지사항 */}
           <Route path="/notices" element={<NoticeListPage />} />
+          <Route path="/notices/write" element={<AdminRoute><NoticeWritePage /></AdminRoute>} />
           <Route path="/notices/:noticeId" element={<NoticeDetailPage />} />
+          <Route path="/notices/:noticeId/edit" element={<AdminRoute><NoticeEditPage /></AdminRoute>} />
 
           {/* 마이페이지 */}
           <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} />
@@ -82,6 +91,14 @@ function AppRouter() {
           {/* 채팅 */}
           <Route path="/chat" element={<PrivateRoute><ChatListPage /></PrivateRoute>} />
           <Route path="/chat/:roomId" element={<PrivateRoute><ChatRoomPage /></PrivateRoute>} />
+        </Route>
+
+        {/* 관리자 - 별도 레이아웃 */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="posts" element={<AdminPostsPage />} />
+          <Route path="studies" element={<AdminStudiesPage />} />
         </Route>
 
         {/* 소셜 로그인 리다이렉트 */}

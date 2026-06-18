@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/useAuthStore'
 import api from '../../service/api'
 
 interface Notice {
@@ -14,6 +15,8 @@ interface Notice {
 function NoticeDetailPage() {
   const { noticeId } = useParams<{ noticeId: string }>()
   const navigate = useNavigate()
+  const { role } = useAuthStore()
+  const isAdmin = role === 'ROLE_ADMIN'
   const [notice, setNotice] = useState<Notice | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -31,6 +34,17 @@ function NoticeDetailPage() {
     }
     fetchNotice()
   }, [noticeId])
+
+  const handleDelete = async () => {
+    if (!window.confirm('공지사항을 삭제하시겠습니까?')) return
+    try {
+      await api.delete(`/api/notices/${noticeId}`)
+      navigate('/notices')
+    } catch (e) {
+      console.error('삭제 실패', e)
+      alert('삭제에 실패했습니다.')
+    }
+  }
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ko-KR')
@@ -66,7 +80,6 @@ function NoticeDetailPage() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
 
-      {/* 뒤로가기 */}
       <div style={{ marginBottom: '20px' }}>
         <button
           onClick={() => navigate('/notices')}
@@ -93,7 +106,6 @@ function NoticeDetailPage() {
         border: '1px solid #F3F4F6', padding: '32px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
       }}>
-        {/* 공지 뱃지 */}
         <div style={{ marginBottom: '12px' }}>
           <span style={{
             padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
@@ -103,33 +115,62 @@ function NoticeDetailPage() {
           </span>
         </div>
 
-        {/* 제목 */}
         <h1 style={{
           fontSize: '24px', fontWeight: 700, color: '#111827',
-          marginBottom: '16px', lineHeight: '1.4', letterSpacing: '-0.3px'
+          marginBottom: '20px', lineHeight: '1.4', letterSpacing: '-0.3px'
         }}>
           {notice.title}
         </h1>
 
-        {/* 작성자/날짜 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-          <div style={{
-            width: '28px', height: '28px', borderRadius: '50%',
-            background: '#EEF2FF', color: '#4338CA',
-            fontSize: '12px', fontWeight: 700, flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            관
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '28px', height: '28px', borderRadius: '50%',
+              background: '#EEF2FF', color: '#4338CA',
+              fontSize: '12px', fontWeight: 700, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              관
+            </div>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>{notice.nickname}</div>
+              <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{formatDate(notice.createdAt)}</div>
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>{notice.nickname}</div>
-            <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{formatDate(notice.createdAt)}</div>
-          </div>
+
+          {/* 관리자 수정/삭제 버튼 */}
+          {isAdmin && (
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button
+                onClick={() => navigate(`/notices/${noticeId}/edit`)}
+                style={{
+                  padding: '5px 12px', borderRadius: '6px', fontSize: '12px',
+                  background: '#F9FAFB', color: '#374151',
+                  border: '1px solid #E5E7EB', cursor: 'pointer', transition: 'all 0.15s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#F3F4F6'}
+                onMouseLeave={e => e.currentTarget.style.background = '#F9FAFB'}
+              >
+                수정
+              </button>
+              <button
+                onClick={handleDelete}
+                style={{
+                  padding: '5px 12px', borderRadius: '6px', fontSize: '12px',
+                  background: '#FEF2F2', color: '#DC2626',
+                  border: '1px solid #FECACA', cursor: 'pointer', transition: 'all 0.15s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
+              >
+                삭제
+              </button>
+            </div>
+          )}
         </div>
 
         <hr style={{ border: 'none', borderTop: '1px solid #F3F4F6', marginBottom: '28px' }} />
 
-        {/* 내용 */}
         <div style={{
           fontSize: '15px', color: '#374151',
           lineHeight: '1.9', whiteSpace: 'pre-wrap'

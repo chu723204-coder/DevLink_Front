@@ -23,9 +23,19 @@ function ChatRoomPage() {
   const [roomName, setRoomName] = useState('')
   const [connected, setConnected] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [ready, setReady] = useState(false) // ✅ 스크롤 완료 후 화면 표시용
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [ready, setReady] = useState(false)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+
+  // ✅ 컨테이너 내부 스크롤을 맨 아래로
+  const scrollToBottom = (smooth = false) => {
+    const container = messagesContainerRef.current
+    if (!container) return
+    if (smooth) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
+    } else {
+      container.scrollTop = container.scrollHeight
+    }
+  }
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -67,22 +77,18 @@ function ChatRoomPage() {
     }
   }, [roomId])
 
-  // ✅ 로딩 완료 후 스크롤 먼저 → 그 다음 화면 표시
+  // ✅ 로딩 완료 후 즉시 스크롤 → 화면 표시
   useEffect(() => {
     if (!loading) {
-      // 스크롤 먼저
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
-      }
-      // 스크롤 완료 후 화면 표시
+      scrollToBottom(false)
       setTimeout(() => setReady(true), 50)
     }
   }, [loading])
 
-  // ✅ 새 메시지 수신 시 부드럽게 스크롤
+  // ✅ 새 메시지 수신 시 컨테이너 내부 스크롤
   useEffect(() => {
     if (messages.length > 0 && !loading && ready) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      scrollToBottom(true)
     }
   }, [messages])
 
@@ -155,13 +161,13 @@ function ChatRoomPage() {
         </button>
       </div>
 
-      {/* ✅ 메시지 목록 - 스크롤 완료 전까지 invisible */}
+      {/* 메시지 목록 */}
       <div
         ref={messagesContainerRef}
         style={{
           flex: 1, overflowY: 'auto', padding: '20px',
           background: '#F9FAFB', display: 'flex', flexDirection: 'column',
-          opacity: loading ? 1 : ready ? 1 : 0, // ✅ 스크롤 완료 전 숨김
+          opacity: loading ? 1 : ready ? 1 : 0,
           transition: 'opacity 0.15s'
         }}
       >
@@ -175,18 +181,15 @@ function ChatRoomPage() {
             ))}
           </div>
         ) : messages.length > 0 ? (
-          <>
-            {messages.map(message => (
-              <ChatMessage
-                key={message.messageId}
-                content={message.content}
-                nickname={message.nickname}
-                createdAt={message.createdAt}
-                isMine={message.senderId === userId}
-              />
-            ))}
-            <div ref={messagesEndRef} />
-          </>
+          messages.map(message => (
+            <ChatMessage
+              key={message.messageId}
+              content={message.content}
+              nickname={message.nickname}
+              createdAt={message.createdAt}
+              isMine={message.senderId === userId}
+            />
+          ))
         ) : (
           <div style={{ textAlign: 'center', margin: 'auto', color: '#9CA3AF' }}>
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
