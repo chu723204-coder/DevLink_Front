@@ -16,22 +16,45 @@ interface Study {
   deadline: string
 }
 
+interface Notice {
+  noticeId: number
+  title: string
+  createdAt: string
+}
+
 function RightSidebar() {
   const navigate = useNavigate()
   const [studies, setStudies] = useState<Study[]>([])
+  const [notices, setNotices] = useState<Notice[]>([])
 
   useEffect(() => {
     const fetchStudies = async () => {
       try {
         const res = await api.get('/api/studies')
         const open = (res.data.data || []).filter((s: any) => s.status === 'OPEN')
-        setStudies(open.slice(0, 3)) // 최대 3개만 표시
+        setStudies(open.slice(0, 3))
       } catch (e) {
         console.error('스터디 목록 조회 실패', e)
       }
     }
+
+    const fetchNotices = async () => {
+      try {
+        const res = await api.get('/api/notices')
+        setNotices((res.data.data || []).slice(0, 3))
+      } catch (e) {
+        console.error('공지사항 조회 실패', e)
+      }
+    }
+
     fetchStudies()
+    fetchNotices()
   }, [])
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return `${date.getMonth() + 1}.${date.getDate()}`
+  }
 
   return (
     <aside style={{
@@ -45,7 +68,7 @@ function RightSidebar() {
       gap: '16px'
     }}>
 
-      {/* ✅ 모집 중인 스터디 - API 연동 */}
+      {/* 모집 중인 스터디 */}
       <div style={{ background: '#fff', border: '1px solid #F3F4F6', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>🔥 모집 중인 스터디</span>
@@ -66,12 +89,9 @@ function RightSidebar() {
                 key={study.studyId}
                 onClick={() => navigate(`/studies/${study.studyId}`)}
                 style={{
-                  padding: '10px 12px',
-                  borderRadius: '8px',
-                  background: '#F9FAFB',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                  border: '1px solid transparent'
+                  padding: '10px 12px', borderRadius: '8px',
+                  background: '#F9FAFB', cursor: 'pointer',
+                  transition: 'all 0.15s', border: '1px solid transparent'
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = '#EEF2FF'
@@ -104,16 +124,63 @@ function RightSidebar() {
         )}
       </div>
 
-      {/* ✅ 공지사항 - 빈 상태 개선 */}
+      {/* 공지사항 - API 연동 */}
       <div style={{ background: '#fff', border: '1px solid #F3F4F6', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>📢 공지사항</div>
-        <div style={{ textAlign: 'center', padding: '16px 0' }}>
-          <div style={{ fontSize: '24px', marginBottom: '6px' }}>🔔</div>
-          <div style={{ fontSize: '12px', color: '#9CA3AF' }}>등록된 공지사항이 없어요</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>📢 공지사항</span>
+          <span
+            onClick={() => navigate('/notices')}
+            style={{ fontSize: '11px', color: '#4338CA', cursor: 'pointer', fontWeight: 500 }}
+            onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+            onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+          >
+            더보기
+          </span>
         </div>
+
+        {notices.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {notices.map(notice => (
+              <div
+                key={notice.noticeId}
+                onClick={() => navigate(`/notices/${notice.noticeId}`)}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '8px 10px', borderRadius: '8px', cursor: 'pointer',
+                  transition: 'all 0.15s', background: '#F9FAFB',
+                  border: '1px solid transparent'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#EEF2FF'
+                  e.currentTarget.style.borderColor = '#C7D2FE'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = '#F9FAFB'
+                  e.currentTarget.style.borderColor = 'transparent'
+                }}
+              >
+                <div style={{
+                  fontSize: '12px', color: '#374151', fontWeight: 500,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  flex: 1, marginRight: '8px'
+                }}>
+                  {notice.title}
+                </div>
+                <div style={{ fontSize: '11px', color: '#9CA3AF', flexShrink: 0 }}>
+                  {formatDate(notice.createdAt)}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <div style={{ fontSize: '24px', marginBottom: '6px' }}>🔔</div>
+            <div style={{ fontSize: '12px', color: '#9CA3AF' }}>등록된 공지사항이 없어요</div>
+          </div>
+        )}
       </div>
 
-      {/* ✅ 인기 태그 */}
+      {/* 인기 태그 */}
       <div style={{ background: '#fff', border: '1px solid #F3F4F6', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>🏷️ 인기 태그</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -122,14 +189,9 @@ function RightSidebar() {
               key={tag}
               onClick={() => navigate(`/posts?tag=${tag}`)}
               style={{
-                padding: '4px 10px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                background: '#EEF2FF',
-                color: '#4338CA',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-                fontWeight: 500
+                padding: '4px 10px', borderRadius: '20px', fontSize: '12px',
+                background: '#EEF2FF', color: '#4338CA', cursor: 'pointer',
+                transition: 'all 0.15s', fontWeight: 500
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.background = '#4338CA'

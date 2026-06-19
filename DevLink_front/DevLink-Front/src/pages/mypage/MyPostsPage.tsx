@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../service/api'
+import { useToastStore } from '../../store/toastStore'
 
 interface Post {
   postId: number
@@ -25,6 +26,7 @@ function MyPostsPage() {
   const navigate = useNavigate()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const { success, error } = useToastStore()
 
   useEffect(() => {
     const fetchMyPosts = async () => {
@@ -41,6 +43,24 @@ function MyPostsPage() {
     fetchMyPosts()
   }, [])
 
+  const handleDelete = async (e: React.MouseEvent, postId: number) => {
+    e.stopPropagation() // 카드 클릭 이벤트 방지
+    if (!confirm('게시글을 삭제하시겠습니까?')) return
+    try {
+      await api.delete(`/api/posts/${postId}`)
+      setPosts(prev => prev.filter(p => p.postId !== postId))
+      success('게시글이 삭제되었습니다.')
+    } catch (e) {
+      console.error('게시글 삭제 실패', e)
+      error('게시글 삭제에 실패했습니다.')
+    }
+  }
+
+  const handleEdit = (e: React.MouseEvent, postId: number) => {
+    e.stopPropagation() // 카드 클릭 이벤트 방지
+    navigate(`/posts/${postId}/edit`)
+  }
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
     const now = new Date()
@@ -53,12 +73,16 @@ function MyPostsPage() {
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <button
-          onClick={() => navigate('/mypage')}
-          style={{ background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '14px' }}
+          onClick={() => navigate(-1)}
+          style={{
+            background: 'none', border: 'none', color: '#6B7280',
+            cursor: 'pointer', fontSize: '13px', padding: '0',
+            marginBottom: '8px', display: 'block'
+          }}
         >
-          ← 마이페이지
+          ← 뒤로가기
         </button>
         <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#111827' }}>내 게시글</h1>
       </div>
@@ -84,14 +108,42 @@ function MyPostsPage() {
                 e.currentTarget.style.boxShadow = 'none'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              {/* 카테고리 + 수정/삭제 버튼 */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{
                   padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
                   background: '#EEF2FF', color: '#4338CA'
                 }}>
                   {categoryLabels[post.category] || post.category}
                 </span>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={e => handleEdit(e, post.postId)}
+                    style={{
+                      padding: '4px 10px', borderRadius: '6px', fontSize: '12px',
+                      background: '#F9FAFB', color: '#374151',
+                      border: '1px solid #E5E7EB', cursor: 'pointer', transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F3F4F6'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#F9FAFB'}
+                  >
+                    수정
+                  </button>
+                  <button
+                    onClick={e => handleDelete(e, post.postId)}
+                    style={{
+                      padding: '4px 10px', borderRadius: '6px', fontSize: '12px',
+                      background: '#FEF2F2', color: '#DC2626',
+                      border: '1px solid #FECACA', cursor: 'pointer', transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
+
               <div style={{ fontSize: '15px', fontWeight: 600, color: '#111827', marginBottom: '6px' }}>
                 {post.title}
               </div>

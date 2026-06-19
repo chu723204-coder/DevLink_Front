@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
 import api from '../../service/api'
+import ReportModal from '../../components/common/ReportModal'
 
 interface Post {
   postId: number
@@ -60,6 +61,13 @@ function PostDetailPage() {
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [editingContent, setEditingContent] = useState('')
 
+  // 신고 모달 상태
+  const [reportModal, setReportModal] = useState<{
+    open: boolean
+    targetType: 'POST' | 'COMMENT'
+    targetId: number
+  }>({ open: false, targetType: 'POST', targetId: 0 })
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
@@ -72,7 +80,6 @@ function PostDetailPage() {
         setPost(postData)
         setComments(commentRes.data.data || [])
 
-        // ✅ 좋아요 상태 서버에서 불러오기
         if (isLoggedIn) {
           try {
             const likeRes = await api.get(`/api/posts/${postId}/like`)
@@ -130,13 +137,11 @@ function PostDetailPage() {
     }
   }
 
-  // ✅ 댓글 수정 시작
   const handleCommentEditStart = (comment: Comment) => {
     setEditingCommentId(comment.commentId)
     setEditingContent(comment.content)
   }
 
-  // ✅ 댓글 수정 완료
   const handleCommentEditSubmit = async (commentId: number) => {
     if (!editingContent.trim()) return
     try {
@@ -272,7 +277,8 @@ function PostDetailPage() {
               <span>🔥 {post.likeCount}</span>
               <span>💬 {post.commentCount}</span>
             </div>
-            {isLoggedIn && post.nickname === nickname && (
+            {isLoggedIn && post.nickname === nickname ? (
+              // 본인 글: 수정/삭제
               <div style={{ display: 'flex', gap: '6px' }}>
                 <button
                   onClick={() => navigate(`/posts/${postId}/edit`)}
@@ -299,7 +305,21 @@ function PostDetailPage() {
                   삭제
                 </button>
               </div>
-            )}
+            ) : isLoggedIn ? (
+              // 타인 글: 신고
+              <button
+                onClick={() => setReportModal({ open: true, targetType: 'POST', targetId: post.postId })}
+                style={{
+                  padding: '5px 12px', borderRadius: '6px', fontSize: '12px',
+                  background: '#FFF7ED', color: '#C2410C',
+                  border: '1px solid #FED7AA', cursor: 'pointer', transition: 'all 0.15s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#FFEDD5'}
+                onMouseLeave={e => e.currentTarget.style.background = '#FFF7ED'}
+              >
+                신고
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -401,6 +421,7 @@ function PostDetailPage() {
           {comments.length > 0 ? comments.map(comment => {
             const commentAvatar = getAvatarColor(comment.nickname || '')
             const isEditing = editingCommentId === comment.commentId
+            const isMyComment = comment.userId === userId
             return (
               <div key={comment.commentId} style={{
                 padding: '14px 16px', borderRadius: '10px',
@@ -430,7 +451,6 @@ function PostDetailPage() {
                         </span>
                       </div>
 
-                      {/* ✅ 수정 중이면 input, 아니면 텍스트 */}
                       {isEditing ? (
                         <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
                           <input
@@ -472,45 +492,68 @@ function PostDetailPage() {
                     </div>
                   </div>
 
-                  {/* ✅ 수정/삭제 버튼 */}
-                  {isLoggedIn && comment.userId === userId && !isEditing && (
+                  {/* 본인 댓글: 수정/삭제 | 타인 댓글: 신고 */}
+                  {isLoggedIn && !isEditing && (
                     <div style={{ display: 'flex', gap: '4px', marginLeft: '12px', flexShrink: 0 }}>
-                      <button
-                        onClick={() => handleCommentEditStart(comment)}
-                        style={{
-                          background: 'none', border: 'none', color: '#9CA3AF',
-                          fontSize: '12px', cursor: 'pointer',
-                          padding: '4px 8px', borderRadius: '4px', transition: 'all 0.15s'
-                        }}
-                        onMouseEnter={e => {
-                          e.currentTarget.style.color = '#4338CA'
-                          e.currentTarget.style.background = '#EEF2FF'
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.color = '#9CA3AF'
-                          e.currentTarget.style.background = 'none'
-                        }}
-                      >
-                        수정
-                      </button>
-                      <button
-                        onClick={() => handleCommentDelete(comment.commentId)}
-                        style={{
-                          background: 'none', border: 'none', color: '#D1D5DB',
-                          fontSize: '12px', cursor: 'pointer',
-                          padding: '4px 8px', borderRadius: '4px', transition: 'all 0.15s'
-                        }}
-                        onMouseEnter={e => {
-                          e.currentTarget.style.color = '#DC2626'
-                          e.currentTarget.style.background = '#FEF2F2'
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.color = '#D1D5DB'
-                          e.currentTarget.style.background = 'none'
-                        }}
-                      >
-                        삭제
-                      </button>
+                      {isMyComment ? (
+                        <>
+                          <button
+                            onClick={() => handleCommentEditStart(comment)}
+                            style={{
+                              background: 'none', border: 'none', color: '#9CA3AF',
+                              fontSize: '12px', cursor: 'pointer',
+                              padding: '4px 8px', borderRadius: '4px', transition: 'all 0.15s'
+                            }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.color = '#4338CA'
+                              e.currentTarget.style.background = '#EEF2FF'
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.color = '#9CA3AF'
+                              e.currentTarget.style.background = 'none'
+                            }}
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => handleCommentDelete(comment.commentId)}
+                            style={{
+                              background: 'none', border: 'none', color: '#D1D5DB',
+                              fontSize: '12px', cursor: 'pointer',
+                              padding: '4px 8px', borderRadius: '4px', transition: 'all 0.15s'
+                            }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.color = '#DC2626'
+                              e.currentTarget.style.background = '#FEF2F2'
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.color = '#D1D5DB'
+                              e.currentTarget.style.background = 'none'
+                            }}
+                          >
+                            삭제
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setReportModal({ open: true, targetType: 'COMMENT', targetId: comment.commentId })}
+                          style={{
+                            background: 'none', border: 'none', color: '#D1D5DB',
+                            fontSize: '12px', cursor: 'pointer',
+                            padding: '4px 8px', borderRadius: '4px', transition: 'all 0.15s'
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.color = '#C2410C'
+                            e.currentTarget.style.background = '#FFF7ED'
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.color = '#D1D5DB'
+                            e.currentTarget.style.background = 'none'
+                          }}
+                        >
+                          신고
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -524,6 +567,15 @@ function PostDetailPage() {
           )}
         </div>
       </div>
+
+      {/* 신고 모달 */}
+      {reportModal.open && (
+        <ReportModal
+          targetType={reportModal.targetType}
+          targetId={reportModal.targetId}
+          onClose={() => setReportModal({ open: false, targetType: 'POST', targetId: 0 })}
+        />
+      )}
     </div>
   )
 }
