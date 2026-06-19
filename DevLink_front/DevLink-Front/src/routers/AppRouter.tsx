@@ -30,6 +30,7 @@ import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminPostsPage from '../pages/admin/AdminPostsPage'
 import AdminStudiesPage from '../pages/admin/AdminStudiesPage'
+import AdminReportsPage from '../pages/admin/AdminReportsPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuthStore()
@@ -99,6 +100,7 @@ function AppRouter() {
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="posts" element={<AdminPostsPage />} />
           <Route path="studies" element={<AdminStudiesPage />} />
+          <Route path="reports" element={<AdminReportsPage />} />
         </Route>
 
         {/* 소셜 로그인 리다이렉트 */}

@@ -179,23 +179,28 @@ function Navbar() {
                   <button
                     onClick={() => navigate('/admin')}
                     style={{
-                      width: '36px', height: '36px',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      borderRadius: '8px', background: 'transparent',
-                      border: '1px solid #F3F4F6', cursor: 'pointer', color: '#6B7280',
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                      height: '36px', padding: '0 12px',
+                      borderRadius: '8px',
+                      background: '#EEF2FF',
+                      border: '1px solid #C7D2FE',
+                      cursor: 'pointer', color: '#4338CA',
+                      fontSize: '13px', fontWeight: 600,
                       transition: 'all 0.15s'
                     }}
-                    title="관리자"
                     onMouseEnter={e => {
-                      e.currentTarget.style.background = '#F5F3FF'
-                      e.currentTarget.style.color = '#4338CA'
+                      e.currentTarget.style.background = '#4338CA'
+                      e.currentTarget.style.color = '#fff'
+                      e.currentTarget.style.borderColor = '#4338CA'
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.background = 'transparent'
-                      e.currentTarget.style.color = '#6B7280'
+                      e.currentTarget.style.background = '#EEF2FF'
+                      e.currentTarget.style.color = '#4338CA'
+                      e.currentTarget.style.borderColor = '#C7D2FE'
                     }}
                   >
-                    <Shield size={17} strokeWidth={1.5} />
+                    <Shield size={14} strokeWidth={2} />
+                    관리자
                   </button>
                 )}
 
@@ -293,7 +298,6 @@ function Navbar() {
                                 {notiTypeLabel[noti.type] ?? '🔔'}
                               </span>
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                {/* ✅ noti.message 로 수정 */}
                                 <div style={{
                                   fontSize: '12px', color: '#111827',
                                   lineHeight: '1.5',
