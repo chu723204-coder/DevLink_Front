@@ -26,7 +26,6 @@ function ChatRoomPage() {
   const [ready, setReady] = useState(false)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
-  // ✅ 컨테이너 내부 스크롤을 맨 아래로
   const scrollToBottom = (smooth = false) => {
     const container = messagesContainerRef.current
     if (!container) return
@@ -63,10 +62,12 @@ function ChatRoomPage() {
     fetchMessages()
     fetchRoomInfo()
 
+    // store에서 직접 토큰 가져와서 전달
+    const token = useAuthStore.getState().accessToken
     connectStomp(Number(roomId), (message: Message) => {
       setMessages(prev => [...prev, message])
       setConnected(true)
-    })
+    }, token)
 
     const timer = setTimeout(() => setConnected(true), 1000)
 
@@ -77,7 +78,6 @@ function ChatRoomPage() {
     }
   }, [roomId])
 
-  // ✅ 로딩 완료 후 즉시 스크롤 → 화면 표시
   useEffect(() => {
     if (!loading) {
       scrollToBottom(false)
@@ -85,7 +85,6 @@ function ChatRoomPage() {
     }
   }, [loading])
 
-  // ✅ 새 메시지 수신 시 컨테이너 내부 스크롤
   useEffect(() => {
     if (messages.length > 0 && !loading && ready) {
       scrollToBottom(true)
@@ -202,7 +201,7 @@ function ChatRoomPage() {
       </div>
 
       {/* 입력창 */}
-      <ChatInput onSend={handleSend} disabled={!connected} />
+      <ChatInput onSend={handleSend} />
     </div>
   )
 }

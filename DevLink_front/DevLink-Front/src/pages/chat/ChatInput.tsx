@@ -2,14 +2,13 @@ import { useState } from 'react'
 
 interface ChatInputProps {
   onSend: (content: string) => void
-  disabled?: boolean
 }
 
-function ChatInput({ onSend, disabled }: ChatInputProps) {
+function ChatInput({ onSend }: ChatInputProps) {
   const [input, setInput] = useState('')
 
   const handleSend = () => {
-    if (!input.trim() || disabled) return
+    if (!input.trim()) return
     onSend(input.trim())
     setInput('')
   }
@@ -25,21 +24,20 @@ function ChatInput({ onSend, disabled }: ChatInputProps) {
         onChange={e => setInput(e.target.value)}
         onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
         placeholder="메시지를 입력하세요..."
-        disabled={disabled}
         style={{
           flex: 1, padding: '10px 14px', borderRadius: '8px',
           border: '1px solid #E5E7EB', fontSize: '14px', outline: 'none',
-          background: disabled ? '#F9FAFB' : '#fff'
+          background: '#fff'
         }}
       />
       <button
         onClick={handleSend}
-        disabled={disabled || !input.trim()}
+        disabled={!input.trim()}
         style={{
           padding: '10px 18px', borderRadius: '8px', fontSize: '14px',
-          background: disabled || !input.trim() ? '#E5E7EB' : '#4338CA',
-          color: disabled || !input.trim() ? '#9CA3AF' : '#fff',
-          border: 'none', cursor: disabled || !input.trim() ? 'not-allowed' : 'pointer',
+          background: !input.trim() ? '#E5E7EB' : '#4338CA',
+          color: !input.trim() ? '#9CA3AF' : '#fff',
+          border: 'none', cursor: !input.trim() ? 'not-allowed' : 'pointer',
           fontWeight: 500, flexShrink: 0
         }}
       >
