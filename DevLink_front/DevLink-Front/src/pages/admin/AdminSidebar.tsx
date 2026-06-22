@@ -35,12 +35,29 @@ function AdminSidebar() {
     }}>
       {/* 로고 */}
       <div style={{
-        padding: '24px 20px', borderBottom: '1px solid #C7D2FE'
+        padding: '20px 20px', borderBottom: '1px solid #C7D2FE',
+        display: 'flex', flexDirection: 'column', gap: '6px'
       }}>
-        <div style={{ fontSize: '16px', fontWeight: 800, color: '#3730A3', letterSpacing: '-0.3px' }}>
-          DevLink
+        <div
+          onClick={() => navigate('/')}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+        >
+          <div style={{
+            width: '28px', height: '28px', borderRadius: '8px',
+            background: 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 4px rgba(67,56,202,0.3)', flexShrink: 0
+          }}>
+            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 800 }}>D</span>
+          </div>
+          <span style={{ fontSize: '17px', fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>
+            Dev<span style={{ color: '#4338CA' }}>Link</span>
+          </span>
         </div>
-        <div style={{ fontSize: '11px', color: '#6366F1', marginTop: '2px' }}>
+        <div style={{
+          fontSize: '11px', color: '#6366F1', fontWeight: 500,
+          paddingLeft: '36px'
+        }}>
           관리자 페이지
         </div>
       </div>

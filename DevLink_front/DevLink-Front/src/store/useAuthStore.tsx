@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>()(
       email: null,
       nickname: null,
       role: null,
-      accessToken: null, // 메모리에만 저장
+      accessToken: null,
       activeModal: "NONE",
 
       login: (userId, email, nickname, role, token) => {
@@ -44,7 +44,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           await api.post("/api/auth/logout");
         } catch {
-          // 백엔드 실패해도 로컬 상태 초기화
         } finally {
           set({
             isLoggedIn: false,
@@ -73,7 +72,6 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "auth-storage",
       storage: createJSONStorage(() => sessionStorage),
-      // accessToken은 persist 제외 (보안)
       partialize: (state) => ({
         isLoggedIn: state.isLoggedIn,
         userId: state.userId,
